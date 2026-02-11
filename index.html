@@ -208,7 +208,14 @@
             const t = getCartTotal();
             if(t <= 0) return;
             state.balance += t;
-            state.history.push({ date: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), amount: t, desc: `Venta: ${cart.map(c => c.name).join(', ')}` });
+            // Guardamos un ID único para poder anular luego
+            state.history.push({ 
+                id: Date.now(),
+                date: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 
+                amount: t, 
+                desc: `Venta: ${cart.map(c => c.name).join(', ')}`,
+                isSale: true 
+            });
             clearCart();
             save();
         }
@@ -218,6 +225,18 @@
             document.getElementById('payment-received').value = '';
             document.getElementById('cart-discount').value = '';
             render();
+        }
+
+        // --- Función para Anular ---
+        function voidMovement(id) {
+            const move = state.history.find(h => h.id === id);
+            if (!move) return;
+            
+            // Revertimos el saldo
+            state.balance -= move.amount;
+            // Eliminamos del historial
+            state.history = state.history.filter(h => h.id !== id);
+            save();
         }
 
         // --- CAJA Logic ---
@@ -246,19 +265,21 @@
             const obs = document.getElementById('cash-obs').value || 'Movimiento Manual';
             if(!val) return;
 
+            const moveId = Date.now();
+
             if(state.cashType === 'income') {
                 state.balance += val;
-                state.history.push({ date: 'Manual', amount: val, desc: obs });
+                state.history.push({ id: moveId, date: 'Manual', amount: val, desc: obs });
             } else {
                 if(state.cashMethod === 'cash') {
                     state.balance -= val;
-                    state.history.push({ date: 'Manual', amount: -val, desc: obs });
+                    state.history.push({ id: moveId, date: 'Manual', amount: -val, desc: obs });
                 } else {
                     const ins = parseInt(document.getElementById('installments').value);
                     for(let i=0; i<ins; i++) {
-                        state.fixed.push({ id: Date.now()+i, name: `Cuota ${i+1}/${ins}: ${obs}`, amount: val/ins });
+                        state.fixed.push({ id: moveId + i, name: `Cuota ${i+1}/${ins}: ${obs}`, amount: val/ins });
                     }
-                    state.history.push({ date: 'Tarjeta', amount: 0, desc: `TC: ${obs} (${ins} cuotas)` });
+                    state.history.push({ id: moveId, date: 'Tarjeta', amount: 0, desc: `TC: ${obs} (${ins} cuotas)` });
                 }
             }
             document.getElementById('cash-amount').value = '';
@@ -270,7 +291,7 @@
         function payFixed(id) {
             const item = state.fixed.find(x => x.id === id);
             state.balance -= item.amount;
-            state.history.push({ date: 'Agenda', amount: -item.amount, desc: `Pago: ${item.name}` });
+            state.history.push({ id: Date.now(), date: 'Agenda', amount: -item.amount, desc: `Pago: ${item.name}` });
             state.fixed = state.fixed.filter(x => x.id !== id);
             save();
         }
@@ -315,15 +336,20 @@
             document.getElementById('cart-total').innerText = `$ ${getCartTotal().toLocaleString()}`;
 
             const histEl = document.getElementById('history-log');
-            histEl.innerHTML = state.history.slice(-10).reverse().map(h => `
-                <div class="glass p-4 rounded-2xl flex justify-between items-center">
-                    <div class="truncate pr-4">
+            histEl.innerHTML = state.history.slice(-15).reverse().map(h => `
+                <div class="glass p-4 rounded-2xl flex justify-between items-center group">
+                    <div class="truncate pr-4 flex-1">
                         <p class="text-[8px] text-slate-500 uppercase font-black">${h.date}</p>
                         <p class="text-xs text-white truncate">${h.desc}</p>
                     </div>
-                    <span class="font-bold ${h.amount < 0 ? 'text-rose-400' : 'text-emerald-400'} whitespace-nowrap">
-                        ${h.amount === 0 ? 'TC' : '$ ' + Math.abs(h.amount).toLocaleString()}
-                    </span>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold ${h.amount < 0 ? 'text-rose-400' : 'text-emerald-400'} whitespace-nowrap">
+                            ${h.amount === 0 ? 'TC' : '$ ' + Math.abs(h.amount).toLocaleString()}
+                        </span>
+                        <button onclick="voidMovement(${h.id})" class="text-rose-500/40 hover:text-rose-500 transition-colors p-1" title="Anular">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
             `).join('');
 
