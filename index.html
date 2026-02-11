@@ -4,387 +4,530 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- Meta etiquetas para PWA e Instalación -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="BilleteraPro">
-    <meta name="theme-color" content="#050a14">
+    <meta name="theme-color" content="#0a192f">
     
-    <!-- Icono para iPhone y Android -->
-    <link rel="apple-touch-icon" href="img.jpg">
-    <link rel="icon" type="image/jpeg" href="img.jpg">
-    
-    <!-- Vínculo al Manifest -->
-    <link rel="manifest" href="manifest.json">
-    
-    <title>Billetera Pro</title>
+    <title>Billetera Pro - Modern Navy POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         
         :root {
-            --navy-dark: #050a14;
-            --gold: #fbbf24;
+            --bg-navy: #020617;
+            --surface-navy: #0f172a;
+            --accent-cyan: #22d3ee;
+            --accent-blue: #3b82f6;
         }
 
         body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--navy-dark);
-            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-navy);
+            color: #f1f5f9;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            margin: 0;
+            overflow-x: hidden;
         }
 
-        .glass { 
-            background: rgba(10, 25, 47, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+        /* Estética App Moderna */
+        .glass-card { 
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
 
-        .view { 
-            display: none; 
-            height: 100vh; 
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        .view.active { display: flex; flex-direction: column; }
-
-        .content-scroll {
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 120px;
-        }
-
-        .input-premium {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 18px;
-        }
-
-        .nav-item.active { color: var(--gold); transform: translateY(-2px); }
-        .nav-item { transition: all 0.2s ease; }
-
+        .active-scale:active { transform: scale(0.96); transition: all 0.1s ease; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.8);
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+        .modal-overlay.active { display: flex; animation: slideUp 0.3s ease-out; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; filter: blur(4px); }
+            to { opacity: 1; filter: blur(0); }
+        }
+
+        /* Inputs Modernos */
+        input, textarea, select { 
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            transition: all 0.2s ease;
+        }
+        input:focus { border-color: var(--accent-cyan) !important; box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2); }
+
+        .navy-gradient {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+
+        .cyan-glow {
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+        }
+
+        .tab-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            height: 64px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 60;
+            border-radius: 32px;
+        }
     </style>
 </head>
-<body>
+<body class="pb-32">
 
-    <!-- Navegación Inferior -->
-    <nav class="fixed bottom-0 left-0 right-0 z-50 glass border-t border-white/5 px-6 pt-3 pb-8 flex justify-around items-center rounded-t-[2.5rem]">
-        <button onclick="switchView('pos-view')" class="nav-item flex flex-col items-center gap-1 opacity-40" id="nav-pos">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-            <span class="text-[9px] font-bold uppercase">Ventas</span>
-        </button>
-        <button onclick="switchView('stats-view')" class="nav-item flex flex-col items-center gap-1 opacity-40" id="nav-stats">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-            <span class="text-[9px] font-bold uppercase">Stats</span>
-        </button>
-        <button onclick="switchView('cash-view')" class="nav-item flex flex-col items-center gap-1 opacity-40" id="nav-cash">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span class="text-[9px] font-bold uppercase">Caja</span>
-        </button>
-        <button onclick="openModal('inventory-modal')" class="nav-item flex flex-col items-center gap-1 opacity-40">
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-            <span class="text-[9px] font-bold uppercase">Menu</span>
-        </button>
+    <!-- Header Navy -->
+    <nav class="sticky top-0 z-50 glass-card px-6 py-6 safe-top flex justify-between items-center rounded-b-[2rem]">
+        <div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Capital Total</p>
+            <h1 id="main-balance" class="text-3xl font-extrabold tracking-tight text-white">$ 0</h1>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="openModal('inventory-modal')" class="bg-cyan-500 cyan-glow text-slate-900 w-12 h-12 rounded-2xl flex items-center justify-center active-scale">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                </svg>
+            </button>
+        </div>
     </nav>
 
-    <!-- Header Fijo -->
-    <header class="glass sticky top-0 z-40 border-b border-white/5 px-6 py-4 pt-12">
-        <div class="flex justify-between items-center">
-            <div>
-                <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest opacity-60">Balance Total</p>
-                <h1 id="main-balance" class="text-3xl font-light tracking-tighter">$ 0</h1>
-            </div>
-            <div class="bg-amber-500/10 p-2 rounded-2xl border border-amber-500/20">
-                <span class="text-amber-500 text-[10px] font-black">PREMIUM</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- VISTA POS -->
+    <!-- VISTA 1: POS -->
     <div id="pos-view" class="view active">
-        <div class="content-scroll p-6 space-y-6">
-            <div id="pos-grid" class="grid grid-cols-2 gap-3"></div>
-            
-            <div class="glass rounded-[2.5rem] p-6 space-y-4">
-                <div id="cart-items" class="space-y-2"></div>
-                <div class="pt-4 border-t border-white/5 flex justify-between items-baseline">
-                    <span class="text-xs font-bold text-gray-500 uppercase">Total</span>
-                    <span id="cart-total" class="text-3xl font-light">$ 0</span>
+        <main class="p-5 space-y-6">
+            <section>
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Selección</h2>
+                    <span class="bg-blue-500/10 text-blue-400 text-[9px] px-2 py-1 rounded-md font-bold uppercase">Terminal POS</span>
                 </div>
-                <button onclick="confirmSale()" class="w-full py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest">Registrar Venta</button>
-            </div>
-            
-            <div id="history-log" class="space-y-2"></div>
-        </div>
+                <div id="pos-grid" class="grid grid-cols-2 gap-3"></div>
+            </section>
+
+            <section class="glass-card rounded-[2.5rem] p-7 border-t border-white/10">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="font-bold text-lg tracking-tight text-white">Venta en curso</h2>
+                    <button onclick="clearCart()" class="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-4 py-2 rounded-full uppercase active-scale">Limpiar</button>
+                </div>
+                
+                <div id="cart-items" class="space-y-3 mb-5 max-h-48 overflow-y-auto no-scrollbar"></div>
+                
+                <div class="flex items-center gap-3 mb-6 bg-slate-900/50 p-4 rounded-2xl">
+                    <div class="bg-cyan-500/20 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-cyan-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clip-rule="evenodd" />
+                            <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z" />
+                        </svg>
+                    </div>
+                    <input type="number" id="cart-discount" oninput="render(); calculateChange();" placeholder="Descuento %" class="flex-1 bg-transparent border-none outline-none font-bold text-cyan-400 placeholder:text-slate-600 text-sm">
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center px-2">
+                        <span class="text-slate-400 text-sm">A cobrar:</span>
+                        <span id="cart-total" class="text-4xl font-black text-white tracking-tighter">$ 0</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" id="payment-received" oninput="calculateChange()" placeholder="Recibido" class="w-full p-4 rounded-2xl text-center font-bold">
+                        <div id="payment-change" class="w-full bg-slate-800 p-4 rounded-2xl text-emerald-400 font-black flex items-center justify-center text-sm">Vuelto: $0</div>
+                    </div>
+                    
+                    <button onclick="confirmSale()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-[1.5rem] font-bold active-scale shadow-lg cyan-glow transition-all">FINALIZAR COBRO</button>
+                </div>
+            </section>
+
+            <section class="pb-10">
+                <h2 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-1">Últimas Operaciones</h2>
+                <div id="history-log" class="space-y-3"></div>
+            </section>
+        </main>
     </div>
 
-    <!-- VISTA STATS -->
-    <div id="stats-view" class="view">
-        <div class="content-scroll p-6 space-y-6">
-            <h2 class="text-center font-light text-2xl">Rendimiento</h2>
-            <div class="glass p-6 rounded-[2.5rem]">
-                <canvas id="mainChart"></canvas>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div class="glass p-4 rounded-3xl text-center">
-                    <p class="text-[8px] font-black uppercase opacity-40">Ingresos</p>
-                    <p id="stats-inc" class="text-xl font-light text-emerald-400">$ 0</p>
-                </div>
-                <div class="glass p-4 rounded-3xl text-center">
-                    <p class="text-[8px] font-black uppercase opacity-40">Egresos</p>
-                    <p id="stats-exp" class="text-xl font-light text-rose-400">$ 0</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA CAJA -->
+    <!-- VISTA 2: CAJA (REDISEÑADA) -->
     <div id="cash-view" class="view">
-        <div class="content-scroll p-6">
-            <div class="glass p-8 rounded-[3rem] space-y-6">
-                <p class="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">Movimiento Manual</p>
-                <input type="number" id="cash-amount" class="w-full bg-transparent text-5xl font-light text-center outline-none" placeholder="0">
-                <input type="text" id="cash-obs" class="w-full input-premium p-4 text-center text-sm" placeholder="Concepto o referencia...">
-                <button onclick="registerCashMovement()" class="w-full py-5 bg-amber-500 text-black rounded-2xl font-black text-[10px] uppercase tracking-widest">Confirmar</button>
-                <p class="text-[8px] text-center text-gray-600">Usa números negativos (-) para registrar gastos.</p>
+        <main class="p-6 space-y-6">
+            <div class="flex flex-col gap-4">
+                <div class="glass-card p-6 rounded-[2rem] bg-gradient-to-br from-emerald-500/10 to-transparent border-l-4 border-l-emerald-500">
+                    <p class="text-[10px] font-bold text-emerald-500/60 uppercase mb-1">Entradas del Periodo</p>
+                    <p id="stats-income" class="text-3xl font-black text-emerald-400">$ 0</p>
+                </div>
+                <div class="glass-card p-6 rounded-[2rem] bg-gradient-to-br from-rose-500/10 to-transparent border-l-4 border-l-rose-500">
+                    <p class="text-[10px] font-bold text-rose-500/60 uppercase mb-1">Salidas del Periodo</p>
+                    <p id="stats-expense" class="text-3xl font-black text-rose-400">$ 0</p>
+                </div>
             </div>
-        </div>
+
+            <section class="glass-card rounded-[2.5rem] p-8">
+                <h2 class="font-bold text-xl mb-8 text-center text-white">Nuevo Movimiento</h2>
+                
+                <div class="space-y-6">
+                    <div class="flex p-1.5 bg-slate-900 rounded-2xl">
+                        <button id="type-income" onclick="setCashType('income')" class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase bg-blue-600 text-white transition-all shadow-lg">Entrada</button>
+                        <button id="type-expense" onclick="setCashType('expense')" class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase text-slate-500 transition-all">Salida</button>
+                    </div>
+
+                    <div class="space-y-2">
+                        <input type="number" id="cash-amount" oninput="renderInstallmentCalc()" class="w-full p-6 rounded-2xl text-4xl font-black text-center" placeholder="0.00">
+                    </div>
+
+                    <textarea id="cash-obs" rows="2" class="w-full p-5 rounded-2xl text-sm" placeholder="Concepto o descripción..."></textarea>
+
+                    <div id="expense-options" class="hidden animate-fadeIn space-y-4">
+                        <div class="flex gap-2">
+                            <button id="cash-method-cash" onclick="setCashMethod('cash')" class="flex-1 py-3 rounded-xl font-bold text-[10px] uppercase bg-slate-800 text-blue-400 border border-blue-400/20">Efectivo</button>
+                            <button id="cash-method-card" onclick="setCashMethod('card')" class="flex-1 py-3 rounded-xl font-bold text-[10px] uppercase text-slate-500">Tarjeta</button>
+                        </div>
+                        <div id="cash-card-fields" class="hidden">
+                            <select id="cash-installments" onchange="renderInstallmentCalc()" class="w-full p-4 rounded-xl mb-2"></select>
+                            <p id="cash-installment-info" class="text-xs text-center text-cyan-400 font-medium"></p>
+                        </div>
+                    </div>
+
+                    <button onclick="registerCashMovement()" class="w-full py-5 bg-white text-slate-900 rounded-[1.5rem] font-black active-scale text-xs uppercase tracking-widest shadow-xl">PROCESAR</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- VISTA 3: FIJOS -->
+    <div id="fixed-expenses-view" class="view">
+        <main class="p-6 space-y-6">
+            <h2 class="text-2xl font-black text-white px-2">Agenda de Pagos</h2>
+            <div id="fixed-expenses-list" class="space-y-4"></div>
+        </main>
+    </div>
+
+    <!-- Tab Bar Moderna -->
+    <div class="tab-bar glass-card">
+        <button onclick="switchView('pos-view')" class="text-slate-400 hover:text-cyan-400 flex flex-col items-center gap-1 active-scale">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <span class="text-[8px] font-bold uppercase">POS</span>
+        </button>
+        <button onclick="switchView('cash-view')" class="text-slate-400 hover:text-cyan-400 flex flex-col items-center gap-1 active-scale">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-[8px] font-bold uppercase">Caja</span>
+        </button>
+        <button onclick="switchView('fixed-expenses-view')" class="text-slate-400 hover:text-cyan-400 flex flex-col items-center gap-1 active-scale">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span class="text-[8px] font-bold uppercase">Agenda</span>
+        </button>
     </div>
 
     <!-- Modal Catálogo -->
-    <div id="inventory-modal" class="modal-overlay fixed inset-0 z-[60] hidden items-end">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeModal('inventory-modal')"></div>
-        <div class="relative w-full glass rounded-t-[3rem] p-8 pb-20">
-            <div class="w-10 h-1 bg-white/20 rounded-full mx-auto mb-8"></div>
-            <div class="space-y-4">
-                <p class="font-black text-xs uppercase tracking-[0.2em] mb-2 text-amber-500">Nuevo Producto</p>
-                <div class="flex gap-2">
-                    <input type="text" id="new-name" placeholder="Nombre" class="flex-1 input-premium p-4 outline-none">
-                    <input type="number" id="new-price" placeholder="$" class="w-24 input-premium p-4 text-center font-bold outline-none">
-                </div>
-                <button onclick="addProduct()" class="w-full py-4 bg-white text-black rounded-xl font-black text-[10px] uppercase tracking-widest">Guardar en Catálogo</button>
+    <div id="inventory-modal" class="modal-overlay items-end justify-center">
+        <div class="bg-[#0f172a] w-full max-w-md rounded-t-[3rem] flex flex-col max-h-[92vh] border-t border-white/10 shadow-2xl">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <h3 class="font-bold text-xl text-white">Productos</h3>
+                <button onclick="closeModal('inventory-modal')" class="w-10 h-10 flex items-center justify-center bg-slate-800 rounded-full text-white">✕</button>
             </div>
-            <div id="full-inventory" class="mt-10 space-y-3 max-h-48 overflow-y-auto no-scrollbar"></div>
+            <div class="p-8 overflow-y-auto no-scrollbar space-y-6 pb-20">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" id="new-name" placeholder="Nombre" class="p-4 rounded-xl text-sm">
+                    <input type="number" id="new-price" placeholder="$ Precio" class="p-4 rounded-xl text-sm font-bold">
+                </div>
+                <button onclick="addProduct()" class="w-full py-4 bg-cyan-500 text-slate-900 rounded-2xl font-extrabold uppercase text-[10px] active-scale">Guardar en Catálogo</button>
+                <div id="full-inventory" class="space-y-2"></div>
+                <div class="pt-10">
+                    <button onclick="clearAllData()" class="w-full py-4 text-rose-500 text-[10px] font-bold uppercase tracking-widest bg-rose-500/10 rounded-xl">Restablecer Sistema</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script>
-        /**
-         * FIX: Manejo preventivo del registro del Service Worker.
-         * Se verifica que el entorno no sea una URL 'blob' antes de intentar el registro,
-         * evitando así errores de protocolo en la consola del editor.
-         */
-        if ('serviceWorker' in navigator && window.location.protocol !== 'blob:') {
-            window.addEventListener('load', () => {
-                const swCode = `
-                    self.addEventListener('install', (e) => self.skipWaiting());
-                    self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-                    self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));
-                `;
-                
-                try {
-                    const blob = new Blob([swCode], { type: 'application/javascript' });
-                    const swUrl = URL.createObjectURL(blob);
-                    
-                    navigator.serviceWorker.register(swUrl)
-                        .then(() => console.log('PWA: Modo Offline preparado'))
-                        .catch(() => { /* Silenciar error en entornos restringidos */ });
-                } catch (e) {
-                    console.warn('PWA: Entorno incompatible con Service Workers dinámicos.');
-                }
-            });
-        }
+    <!-- Firebase SDK Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'navy-pos-v1';
 
         let state = {
             balance: 0,
-            products: [{ id: 1, name: 'Café Espresso', price: 1500 }, { id: 2, name: 'Medialuna', price: 900 }],
+            products: [],
+            fixedExpenses: [],
             cart: [],
-            history: []
+            history: [],
+            currentCashType: 'income',
+            currentCashMethod: 'cash'
         };
 
-        const KEY = 'billetera_final_v1';
-        function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
-        function load() {
-            const data = localStorage.getItem(KEY);
-            if(data) state = JSON.parse(data);
-            render();
-            updateNavUI('pos-view');
-        }
+        let user = null;
 
-        function switchView(id) {
+        const initAuth = async () => {
+            try { await signInAnonymously(auth); } catch (err) { console.error("Auth error:", err); }
+        };
+
+        onAuthStateChanged(auth, (u) => {
+            if (u) { user = u; syncData(); }
+        });
+
+        const syncData = () => {
+            if (!user) return;
+            const userDoc = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'mainState');
+            onSnapshot(userDoc, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    state.balance = data.balance || 0;
+                    state.products = data.products || [];
+                    state.fixedExpenses = data.fixedExpenses || [];
+                    state.history = data.history || [];
+                    render();
+                } else {
+                    state.products = [{ id: 1, name: 'Café Cold Brew', price: 2100 }, { id: 2, name: 'Tostado Navy', price: 3500 }];
+                    saveToCloud();
+                }
+            });
+        };
+
+        const saveToCloud = async () => {
+            if (!user) return;
+            const userDoc = doc(db, 'artifacts', appId, 'users', user.uid, 'settings', 'mainState');
+            await setDoc(userDoc, {
+                balance: state.balance,
+                products: state.products,
+                fixedExpenses: state.fixedExpenses,
+                history: state.history
+            }, { merge: true });
+        };
+
+        window.switchView = (id) => {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            updateNavUI(id);
-            if(id === 'stats-view') renderCharts();
-            window.scrollTo(0,0);
-        }
+        };
 
-        function updateNavUI(id) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            const map = {'pos-view':'nav-pos', 'stats-view':'nav-stats', 'cash-view':'nav-cash'};
-            if(map[id]) document.getElementById(map[id]).classList.add('active');
-        }
-
-        function addToCart(id) {
+        window.addToCart = (id) => {
             const p = state.products.find(x => x.id === id);
             const inCart = state.cart.find(x => x.id === id);
-            if(inCart) inCart.qty++; else state.cart.push({...p, qty: 1});
+            if(inCart) inCart.qty++;
+            else state.cart.push({...p, qty: 1});
             render();
-        }
+        };
 
-        function confirmSale() {
-            const total = state.cart.reduce((s,i) => s + (i.price*i.qty), 0);
-            if(total === 0) return;
+        window.clearCart = () => { 
+            state.cart = []; 
+            document.getElementById('payment-received').value = ''; 
+            document.getElementById('cart-discount').value = '';
+            render(); 
+        };
+
+        window.getCartTotal = () => {
+            const subtotal = state.cart.reduce((s, i) => s + (i.price * i.qty), 0);
+            const discountPercent = parseFloat(document.getElementById('cart-discount').value) || 0;
+            return subtotal - (subtotal * (discountPercent / 100));
+        };
+
+        window.calculateChange = () => {
+            const total = window.getCartTotal();
+            const received = parseFloat(document.getElementById('payment-received').value) || 0;
+            const el = document.getElementById('payment-change');
+            el.innerText = received >= total && total > 0 ? `Vuelto: $ ${(received - total).toLocaleString('es-AR')}` : `Vuelto: $ 0`;
+        };
+
+        window.confirmSale = async () => {
+            const total = window.getCartTotal();
+            if(total <= 0) return;
+            
             state.balance += total;
             state.history.push({ 
                 date: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 
                 amount: total, 
-                type:'income', 
-                desc: state.cart.map(c => `${c.qty}x ${c.name}`).join(', ') 
+                type: 'income', 
+                desc: `Cobro POS: ${state.cart.map(c => c.name).join(', ')}` 
             });
-            state.cart = [];
-            save(); render();
-        }
+            window.clearCart(); 
+            await saveToCloud();
+        };
 
-        function registerCashMovement() {
+        window.setCashType = (t) => {
+            state.currentCashType = t;
+            document.getElementById('type-income').className = t === 'income' ? "flex-1 py-3 rounded-xl font-bold text-[11px] uppercase bg-blue-600 text-white shadow-lg" : "flex-1 py-3 rounded-xl font-bold text-[11px] uppercase text-slate-500";
+            document.getElementById('type-expense').className = t === 'expense' ? "flex-1 py-3 rounded-xl font-bold text-[11px] uppercase bg-rose-600 text-white shadow-lg" : "flex-1 py-3 rounded-xl font-bold text-[11px] uppercase text-slate-500";
+            document.getElementById('expense-options').classList.toggle('hidden', t === 'income');
+        };
+
+        window.setCashMethod = (m) => {
+            state.currentCashMethod = m;
+            document.getElementById('cash-method-cash').className = m === 'cash' ? "flex-1 py-3 rounded-xl font-bold text-[10px] uppercase bg-slate-800 text-blue-400 border border-blue-400/20" : "flex-1 py-3 rounded-xl font-bold text-[10px] uppercase text-slate-500";
+            document.getElementById('cash-method-card').className = m === 'card' ? "flex-1 py-3 rounded-xl font-bold text-[10px] uppercase bg-slate-800 text-blue-400 border border-blue-400/20" : "flex-1 py-3 rounded-xl font-bold text-[10px] uppercase text-slate-500";
+            document.getElementById('cash-card-fields').classList.toggle('hidden', m === 'cash');
+        };
+
+        window.renderInstallmentCalc = () => {
+            const val = parseFloat(document.getElementById('cash-amount').value) || 0;
+            const ins = parseInt(document.getElementById('cash-installments').value) || 1;
+            document.getElementById('cash-installment-info').innerText = ins > 1 ? `${ins} pagos de $ ${(val/ins).toLocaleString('es-AR')}` : "";
+        };
+
+        window.registerCashMovement = async () => {
             const val = parseFloat(document.getElementById('cash-amount').value);
+            const obs = document.getElementById('cash-obs').value || 'Sin descripción';
             if(!val) return;
-            state.balance += val;
-            state.history.push({ 
-                date: new Date().toLocaleDateString([], {day:'2-digit', month:'2-digit'}), 
-                amount: val, 
-                type: val > 0 ? 'income' : 'expense', 
-                desc: document.getElementById('cash-obs').value || 'Movimiento Manual' 
-            });
+
+            if(state.currentCashType === 'income') {
+                state.balance += val;
+                state.history.push({ date: 'Manual', amount: val, type: 'income', desc: obs });
+            } else {
+                if(state.currentCashMethod === 'cash') {
+                    state.balance -= val;
+                    state.history.push({ date: 'Manual', amount: -val, type: 'expense', desc: obs });
+                } else {
+                    const ins = parseInt(document.getElementById('cash-installments').value);
+                    state.history.push({ date: 'Tarjeta', amount: -val, type: 'expense', desc: `${obs} (${ins} cuotas)` });
+                    const now = new Date();
+                    for(let i=0; i<ins; i++) {
+                        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                        state.fixedExpenses.push({ id: Date.now() + i, name: `Pago ${i+1}/${ins}: ${obs}`, amount: val/ins });
+                    }
+                }
+            }
             document.getElementById('cash-amount').value = '';
             document.getElementById('cash-obs').value = '';
-            save(); render(); switchView('pos-view');
-        }
+            await saveToCloud();
+            window.switchView('pos-view');
+        };
 
-        let chart = null;
-        function renderCharts() {
-            const ctx = document.getElementById('mainChart');
-            if(!ctx) return;
-            const historySlice = state.history.slice(-10);
-            const data = historySlice.map(h => h.amount);
-            const labels = historySlice.map(h => h.date);
-            
-            if(chart) chart.destroy();
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{ 
-                        data, 
-                        borderColor: '#fbbf24', 
-                        tension: 0.4, 
-                        fill: true, 
-                        backgroundColor: 'rgba(251,191,36,0.05)',
-                        pointRadius: 4,
-                        pointBackgroundColor: '#fbbf24'
-                    }]
-                },
-                options: { 
-                    responsive: true,
-                    plugins: { legend: { display: false } }, 
-                    scales: { 
-                        y: { ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 8 } }, grid: { color: 'rgba(255,255,255,0.05)' } }, 
-                        x: { ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 8 } }, grid: { display: false } } 
-                    } 
-                }
-            });
-            
-            const inc = state.history.filter(h => h.amount > 0).reduce((s,h) => s+h.amount,0);
-            const exp = state.history.filter(h => h.amount < 0).reduce((s,h) => s+Math.abs(h.amount),0);
-            document.getElementById('stats-inc').innerText = `$ ${inc.toLocaleString()}`;
-            document.getElementById('stats-exp').innerText = `$ ${exp.toLocaleString()}`;
-        }
+        window.removeHistoryItem = async (idx) => {
+            state.balance -= state.history[idx].amount;
+            state.history.splice(idx, 1);
+            await saveToCloud();
+        };
+
+        window.payFixedExpense = async (id) => {
+            const item = state.fixedExpenses.find(x => x.id === id);
+            if(!item) return;
+            state.balance -= item.amount;
+            state.history.push({ date: 'Abonado', amount: -item.amount, type: 'expense', desc: item.name });
+            state.fixedExpenses = state.fixedExpenses.filter(x => x.id !== id);
+            await saveToCloud();
+        };
+
+        window.addProduct = async () => {
+            const n = document.getElementById('new-name');
+            const p = document.getElementById('new-price');
+            if(!n.value || !p.value) return;
+            state.products.push({ id: Date.now(), name: n.value, price: parseFloat(p.value) });
+            n.value = ''; p.value = '';
+            await saveToCloud();
+        };
+
+        window.removeProduct = async (id) => {
+            state.products = state.products.filter(x => x.id !== id);
+            await saveToCloud();
+        };
+
+        window.openModal = (id) => document.getElementById(id).classList.add('active');
+        window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+        window.clearAllData = () => { if(confirm('¿Reiniciar sistema? Se borrarán todos los registros.')) { localStorage.clear(); location.reload(); } };
 
         function render() {
-            const mainBal = document.getElementById('main-balance');
-            if(mainBal) mainBal.innerText = `$ ${state.balance.toLocaleString('es-AR')}`;
+            document.getElementById('main-balance').innerText = `$ ${state.balance.toLocaleString('es-AR')}`;
             
+            const totalIn = state.history.filter(h => h.amount > 0).reduce((s, h) => s + h.amount, 0);
+            const totalOut = state.history.filter(h => h.amount < 0).reduce((s, h) => s + Math.abs(h.amount), 0);
+            document.getElementById('stats-income').innerText = `$ ${totalIn.toLocaleString('es-AR')}`;
+            document.getElementById('stats-expense').innerText = `$ ${totalOut.toLocaleString('es-AR')}`;
+
             const grid = document.getElementById('pos-grid');
-            if(grid) {
-                grid.innerHTML = state.products.map(p => `
-                    <button onclick="addToCart(${p.id})" class="glass p-5 rounded-[2rem] text-left active:scale-95 transition-transform border border-white/5">
-                        <p class="text-[8px] font-black opacity-30 uppercase tracking-widest truncate">${p.name}</p>
-                        <p class="text-xl font-light mt-1">$ ${p.price.toLocaleString()}</p>
-                    </button>
-                `).join('');
-            }
+            grid.innerHTML = state.products.length ? state.products.map(p => `
+                <button onclick="addToCart(${p.id})" class="glass-card p-5 rounded-[1.8rem] flex flex-col active-scale text-left">
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 truncate">${p.name}</span>
+                    <span class="text-lg font-bold text-white">$ ${p.price.toLocaleString()}</span>
+                </button>
+            `).join('') : '<p class="col-span-2 text-center text-slate-500 py-10">Sin productos</p>';
+
+            const cartEl = document.getElementById('cart-items');
+            cartEl.innerHTML = state.cart.map(i => `
+                <div class="flex justify-between items-center text-sm px-1">
+                    <span class="text-slate-200">${i.qty}x ${i.name}</span>
+                    <span class="font-bold text-cyan-400">$ ${(i.qty*i.price).toLocaleString()}</span>
+                </div>
+            `).join('');
             
-            const cartItems = document.getElementById('cart-items');
-            if(cartItems) {
-                cartItems.innerHTML = state.cart.length === 0 ? '<p class="text-center text-[10px] opacity-20 py-2">CARRITO VACÍO</p>' : 
-                    state.cart.map(i => `
-                        <div class="flex justify-between text-[11px] bg-white/5 p-2 rounded-lg">
-                            <span class="opacity-70">${i.qty}x ${i.name}</span>
-                            <span class="font-bold text-amber-500">$ ${(i.qty*i.price).toLocaleString()}</span>
-                        </div>
-                    `).join('');
-            }
-                
-            const cartTot = document.getElementById('cart-total');
-            if(cartTot) cartTot.innerText = `$ ${state.cart.reduce((s,i) => s+(i.price*i.qty), 0).toLocaleString()}`;
+            document.getElementById('cart-total').innerText = `$ ${window.getCartTotal().toLocaleString('es-AR')}`;
 
-            const histLog = document.getElementById('history-log');
-            if(histLog) {
-                histLog.innerHTML = state.history.slice(-3).reverse().map(h => `
-                    <div class="glass p-4 rounded-2xl flex justify-between items-center text-[10px] border border-white/5">
-                        <div class="flex flex-col">
-                            <span class="opacity-30 font-black text-[8px] uppercase">${h.date}</span>
-                            <span class="opacity-60 truncate max-w-[150px]">${h.desc}</span>
-                        </div>
-                        <span class="font-bold ${h.amount > 0 ? 'text-emerald-400' : 'text-rose-400'}">
-                            ${h.amount > 0 ? '+' : ''}$ ${h.amount.toLocaleString()}
-                        </span>
+            const histEl = document.getElementById('history-log');
+            histEl.innerHTML = state.history.slice(-10).reverse().map((h, i) => {
+                const realIdx = state.history.length - 1 - i;
+                return `
+                <div class="glass-card p-4 rounded-2xl flex justify-between items-center">
+                    <div class="truncate flex-1">
+                        <p class="text-[8px] text-slate-500 uppercase font-black">${h.date}</p>
+                        <p class="text-xs text-white truncate font-medium">${h.desc}</p>
                     </div>
-                `).join('');
-            }
-
-            const fullInv = document.getElementById('full-inventory');
-            if(fullInv) {
-                fullInv.innerHTML = state.products.map(p => `
-                    <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl">
-                        <span class="text-xs opacity-80">${p.name}</span>
-                        <div class="flex items-center gap-4">
-                            <span class="text-xs font-bold text-amber-500">$ ${p.price}</span>
-                            <button onclick="removeProduct(${p.id})" class="text-rose-500 text-[10px]">✕</button>
-                        </div>
+                    <div class="flex items-center gap-4">
+                        <span class="font-bold ${h.amount < 0 ? 'text-rose-400' : 'text-emerald-400'}">$ ${Math.abs(h.amount).toLocaleString()}</span>
+                        <button onclick="removeHistoryItem(${realIdx})" class="text-slate-600 hover:text-white transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </div>
-                `).join('');
-            }
+                </div>
+            `}).join('');
+
+            const fixedEl = document.getElementById('fixed-expenses-list');
+            fixedEl.innerHTML = state.fixedExpenses.map(fe => `
+                <div class="glass-card p-5 rounded-2xl flex justify-between items-center border-l-2 border-l-cyan-500">
+                    <div class="truncate">
+                        <p class="text-sm font-bold text-white truncate">${fe.name}</p>
+                        <p class="text-xs text-cyan-400 font-black tracking-tight">$ ${fe.amount.toLocaleString()}</p>
+                    </div>
+                    <button onclick="payFixedExpense(${fe.id})" class="bg-white text-slate-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest active-scale">Pagar</button>
+                </div>
+            `).join('');
+
+            const invEl = document.getElementById('full-inventory');
+            invEl.innerHTML = state.products.map(p => `
+                <div class="flex justify-between p-4 bg-slate-900/50 rounded-xl border border-white/5 items-center">
+                    <div class="flex flex-col">
+                        <span class="text-xs text-white font-bold">${p.name}</span>
+                        <span class="text-[10px] text-cyan-400">$${p.price}</span>
+                    </div>
+                    <button onclick="removeProduct(${p.id})" class="text-rose-500 text-[10px] font-black uppercase bg-rose-500/10 px-3 py-1 rounded-md">Eliminar</button>
+                </div>
+            `).join('');
         }
 
-        function addProduct() {
-            const n = document.getElementById('new-name'), p = document.getElementById('new-price');
-            if(n.value && p.value) {
-                state.products.push({id: Date.now(), name: n.value, price: parseFloat(p.value)});
-                n.value = ''; p.value = ''; save(); render();
-            }
+        const sel = document.getElementById('cash-installments');
+        for(let i=1; i<=24; i++) {
+            const opt = document.createElement('option');
+            opt.value = i; opt.textContent = `${i} Pago${i>1?'s':''}`;
+            sel.appendChild(opt);
         }
-
-        function removeProduct(id) {
-            state.products = state.products.filter(p => p.id !== id);
-            save(); render();
-        }
-
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
-
-        window.onload = load;
+        initAuth();
     </script>
 </body>
 </html>
