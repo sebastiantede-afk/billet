@@ -11,7 +11,7 @@
     <link rel="icon" type="image/jpeg" href="img.jpg">
     <meta name="theme-color" content="#020617">
 
-    <title>Billetera Pro - Agenda Inteligente</title>
+    <title>Billetera Pro - Backup & POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
@@ -24,37 +24,42 @@
         .tab-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; height: 70px; border-radius: 35px; z-index: 100; }
         input, select, textarea { background: rgba(15, 23, 42, 0.8) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        .qty-input::-webkit-inner-spin-button, .qty-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body class="pb-32">
 
-    <!-- Header -->
+    <!-- Header con Balance Global -->
     <nav class="glass sticky top-0 z-50 p-6 flex justify-between items-center rounded-b-[2.5rem]">
         <div class="flex items-center gap-3">
             <img src="img.jpg" class="w-12 h-12 rounded-2xl object-cover border border-white/10" onerror="this.src='https://via.placeholder.com/48'">
             <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Capital Disponible</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Capital Total</p>
                 <h1 id="main-balance" class="text-2xl font-extrabold text-white tracking-tighter">$ 0</h1>
             </div>
         </div>
-        <button onclick="openModal('inventory-modal')" class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-cyan-500/20 active:scale-90 transition-transform">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
-        </button>
+        <div class="flex gap-2">
+            <button onclick="openModal('inventory-modal')" class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-cyan-500/20 active:scale-90 transition-transform">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+            </button>
+        </div>
     </nav>
 
     <!-- VISTA 1: POS -->
     <div id="pos-view" class="view active">
         <main class="p-5 space-y-6">
             <div id="pos-grid" class="grid grid-cols-2 gap-3"></div>
+            
             <section class="glass rounded-[2.5rem] p-7 space-y-4">
                 <div class="flex justify-between items-center">
                     <h2 class="font-bold text-white">Venta Actual</h2>
-                    <button onclick="clearCart()" class="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-3 py-1.5 rounded-full uppercase">Limpiar</button>
+                    <button onclick="clearCart()" class="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-3 py-1.5 rounded-full uppercase">Vaciar</button>
                 </div>
-                <div id="cart-items" class="space-y-2 max-h-40 overflow-y-auto no-scrollbar text-sm"></div>
-                <div class="grid grid-cols-2 gap-3">
+                <div id="cart-items" class="space-y-3 max-h-48 overflow-y-auto no-scrollbar text-sm"></div>
+                
+                <div class="grid grid-cols-2 gap-3 pt-2">
                     <div class="p-3 rounded-2xl bg-slate-900/50">
-                        <label class="text-[9px] text-slate-500 uppercase font-bold block mb-1">Descuento %</label>
+                        <label class="text-[9px] text-slate-500 uppercase font-bold block mb-1">Dcto %</label>
                         <input type="number" id="cart-discount" oninput="render(); calculateChange();" placeholder="0" class="w-full bg-transparent outline-none font-bold text-cyan-400 text-sm">
                     </div>
                     <div class="p-3 rounded-2xl bg-slate-900/50">
@@ -62,6 +67,7 @@
                         <input type="number" id="payment-received" oninput="calculateChange()" placeholder="0" class="w-full bg-transparent outline-none font-bold text-white text-sm">
                     </div>
                 </div>
+
                 <div class="flex justify-between items-end pt-2">
                     <div>
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Total</p>
@@ -69,12 +75,12 @@
                     </div>
                     <div id="payment-change" class="text-emerald-400 font-bold text-sm mb-1">Vuelto: $0</div>
                 </div>
-                <button onclick="confirmSale()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-[1.5rem] font-bold shadow-lg active:scale-95 transition-transform uppercase text-xs tracking-widest">Finalizar Cobro</button>
+                <button onclick="confirmSale()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-[1.5rem] font-bold shadow-lg active:scale-95 transition-transform uppercase text-xs tracking-widest">Cobrar Ahora</button>
             </section>
         </main>
     </div>
 
-    <!-- VISTA 2: CAJA (INGRESOS/EGRESOS) -->
+    <!-- VISTA 2: CAJA -->
     <div id="cash-view" class="view">
         <main class="p-6 space-y-6">
             <div class="glass rounded-[2.5rem] p-8 space-y-6">
@@ -83,7 +89,7 @@
                     <button id="type-expense" onclick="setCashType('expense')" class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase text-slate-500">Egreso</button>
                 </div>
                 <input type="number" id="cash-amount" oninput="renderInstallmentCalc()" class="w-full p-6 rounded-2xl text-4xl font-black text-center" placeholder="0.00">
-                <textarea id="cash-obs" rows="2" class="w-full p-4 rounded-2xl text-sm" placeholder="Descripción..."></textarea>
+                <textarea id="cash-obs" rows="2" class="w-full p-4 rounded-2xl text-sm" placeholder="¿En qué se gastó o de dónde vino?"></textarea>
                 <div id="expense-options" class="hidden space-y-4">
                     <div class="flex gap-2">
                         <button id="method-cash" onclick="setCashMethod('cash')" class="flex-1 py-3 rounded-xl font-bold text-[10px] uppercase bg-slate-800 text-cyan-400 border border-cyan-400/20">Efectivo</button>
@@ -94,34 +100,29 @@
                         <p id="installment-info" class="text-center text-xs text-cyan-400 font-bold"></p>
                     </div>
                 </div>
-                <button onclick="registerCashMovement()" class="w-full py-5 bg-white text-slate-900 rounded-[1.5rem] font-black active:scale-95 uppercase tracking-widest text-xs">Registrar Movimiento</button>
+                <button onclick="registerCashMovement()" class="w-full py-5 bg-white text-slate-900 rounded-[1.5rem] font-black active:scale-95 uppercase tracking-widest text-xs">Guardar Movimiento</button>
             </div>
         </main>
     </div>
 
-    <!-- VISTA 3: STATS (CONTROL MENSUAL) -->
+    <!-- VISTA 3: STATS -->
     <div id="stats-view" class="view">
         <main class="p-6 space-y-6">
             <header class="flex justify-between items-center px-2">
-                <h2 class="text-2xl font-black text-white">Estadísticas</h2>
-                <select id="stats-month-filter" onchange="render()" class="bg-slate-900 text-white text-xs font-bold p-2 rounded-xl border-none outline-none"></select>
+                <h2 class="text-2xl font-black text-white">Historial</h2>
+                <select id="stats-month-filter" onchange="render()" class="bg-slate-900 text-white text-xs font-bold p-2 rounded-xl"></select>
             </header>
             <div id="stats-content" class="space-y-4">
                 <div class="glass p-6 rounded-[2rem] space-y-4">
-                    <div class="flex justify-between items-end">
-                        <div>
-                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Balance Neto</p>
-                            <h3 id="monthly-net" class="text-3xl font-black text-white">$ 0</h3>
-                        </div>
-                        <div id="monthly-performance" class="text-[10px] font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 uppercase tracking-widest">Positivo</div>
-                    </div>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1 text-center">Rendimiento Mensual</p>
+                    <h3 id="monthly-net" class="text-3xl font-black text-white text-center">$ 0</h3>
                     <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex">
-                        <div id="bar-income" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
-                        <div id="bar-expense" class="h-full bg-rose-500 transition-all duration-500" style="width: 0%"></div>
+                        <div id="bar-income" class="h-full bg-emerald-500" style="width: 50%"></div>
+                        <div id="bar-expense" class="h-full bg-rose-500" style="width: 50%"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 pt-2">
-                        <div><p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Ingresos</p><p id="monthly-income" class="text-lg font-bold text-emerald-400">$ 0</p></div>
-                        <div class="text-right"><p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Gastos</p><p id="monthly-expense" class="text-lg font-bold text-rose-400">$ 0</p></div>
+                        <div><p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Entradas</p><p id="monthly-income" class="text-lg font-bold text-emerald-400">$ 0</p></div>
+                        <div class="text-right"><p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Salidas</p><p id="monthly-expense" class="text-lg font-bold text-rose-400">$ 0</p></div>
                     </div>
                 </div>
                 <div id="monthly-details" class="space-y-2"></div>
@@ -129,14 +130,58 @@
         </main>
     </div>
 
-    <!-- VISTA 4: AGENDA (AGRUPADA POR MES) -->
+    <!-- VISTA 4: AGENDA (DEUDAS) -->
     <div id="fixed-view" class="view">
         <main class="p-6 space-y-6">
-            <h2 class="text-2xl font-black text-white px-2">Agenda de Pagos</h2>
-            <div id="fixed-grouped-list" class="space-y-8">
-                <!-- Grupos mensuales se insertan aquí -->
-            </div>
+            <h2 class="text-2xl font-black text-white px-2">Próximos Pagos</h2>
+            <div id="fixed-grouped-list" class="space-y-8"></div>
         </main>
+    </div>
+
+    <!-- Modal Cantidad Manual -->
+    <div id="qty-modal" class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center hidden opacity-0 transition-opacity [&.active]:flex [&.active]:opacity-100">
+        <div class="glass w-[85%] max-w-xs rounded-[3rem] p-8 space-y-6 text-center border-white/20">
+            <h3 id="qty-product-name" class="font-bold text-white text-lg">Producto</h3>
+            <div class="flex items-center justify-between gap-4">
+                <button onclick="adjustQty(-1)" class="w-14 h-14 rounded-2xl bg-slate-800 text-white text-2xl font-bold active:scale-90">-</button>
+                <input type="number" id="manual-qty" class="qty-input w-20 text-4xl font-black text-center bg-transparent text-cyan-400" value="1">
+                <button onclick="adjustQty(1)" class="w-14 h-14 rounded-2xl bg-slate-800 text-white text-2xl font-bold active:scale-90">+</button>
+            </div>
+            <p id="qty-subtotal" class="text-slate-400 font-bold text-sm">$ 0</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeModal('qty-modal')" class="py-4 bg-slate-800 text-slate-400 rounded-2xl font-bold uppercase text-[10px]">Cerrar</button>
+                <button onclick="confirmQtyAdd()" class="py-4 bg-cyan-500 text-slate-900 rounded-2xl font-black uppercase text-[10px]">Añadir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Catálogo & Backup -->
+    <div id="inventory-modal" class="fixed inset-0 z-[120] bg-black/80 flex items-end justify-center hidden opacity-0 transition-opacity [&.active]:flex [&.active]:opacity-100">
+        <div class="glass w-full max-w-md rounded-t-[3rem] p-8 space-y-4 max-h-[85vh] overflow-y-auto no-scrollbar">
+            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white text-xl">Gestión</h3><button onclick="closeModal('inventory-modal')" class="text-slate-500 text-xl">✕</button></div>
+            
+            <div class="p-4 bg-slate-900/50 rounded-2xl space-y-3">
+                <p class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Copia de Seguridad (No perder datos)</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="exportData()" class="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-[9px] font-bold uppercase">Descargar Backup</button>
+                    <label class="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-[9px] font-bold uppercase text-center cursor-pointer">
+                        Subir Backup
+                        <input type="file" id="import-file" onchange="importData(event)" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-900/50 rounded-2xl space-y-3">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nuevo Producto</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="new-name" placeholder="Nombre" class="p-4 rounded-xl text-sm">
+                    <input type="number" id="new-price" placeholder="Precio" class="p-4 rounded-xl text-sm font-bold">
+                </div>
+                <button onclick="addProduct()" class="w-full py-4 bg-cyan-500 text-slate-900 rounded-2xl font-black uppercase text-[10px]">Añadir al POS</button>
+            </div>
+            
+            <div id="full-inventory" class="space-y-2 pt-4"></div>
+        </div>
     </div>
 
     <!-- Tab Bar -->
@@ -159,45 +204,69 @@
         </button>
     </div>
 
-    <!-- Modal Catálogo -->
-    <div id="inventory-modal" class="fixed inset-0 z-[120] bg-black/80 flex items-end justify-center hidden opacity-0 transition-opacity [&.active]:flex [&.active]:opacity-100">
-        <div class="glass w-full max-w-md rounded-t-[3rem] p-8 space-y-4 max-h-[85vh] overflow-y-auto no-scrollbar">
-            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white text-xl">Catálogo</h3><button onclick="closeModal('inventory-modal')" class="text-slate-500 text-xl">✕</button></div>
-            <div class="grid grid-cols-2 gap-2"><input type="text" id="new-name" placeholder="Nombre" class="p-4 rounded-xl text-sm"><input type="number" id="new-price" placeholder="Precio" class="p-4 rounded-xl text-sm font-bold"></div>
-            <button onclick="addProduct()" class="w-full py-4 bg-cyan-500 text-slate-900 rounded-2xl font-black uppercase text-[10px]">Guardar Producto</button>
-            <div id="full-inventory" class="space-y-2 pt-4"></div>
-        </div>
-    </div>
-
     <script>
-        let state = JSON.parse(localStorage.getItem('billetera_full_data')) || {
+        // --- MOTOR DE DATOS ---
+        const DATA_KEY = 'billetera_pro_v2_data';
+        let state = JSON.parse(localStorage.getItem(DATA_KEY)) || {
             balance: 0,
-            products: [{id: 1, name: 'Ejemplo', price: 1000}],
+            products: [{id: 1, name: 'Venta Libre', price: 0}],
             history: [],
-            fixed: [], // Cuotas futuras
+            fixed: [],
             cashType: 'income',
             cashMethod: 'cash'
         };
 
         let cart = [];
+        let selectedProductForQty = null;
 
         function save() {
-            localStorage.setItem('billetera_full_data', JSON.stringify(state));
+            localStorage.setItem(DATA_KEY, JSON.stringify(state));
             render();
         }
 
+        // --- BACKUP ---
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "billetera_backup_" + new Date().toLocaleDateString() + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if(confirm("¿Estás seguro de importar? Esto reemplazará tus datos actuales.")) {
+                        state = imported;
+                        save();
+                        location.reload();
+                    }
+                } catch(err) {
+                    alert("Archivo de backup no válido");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- NAVEGACIÓN ---
         function switchView(id) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             ['pos', 'cash', 'stats', 'fixed'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
-                if(!el) return;
-                const isActive = `view-${t}` === id.replace('-view', '');
+                const isActive = id.includes(t);
                 el.classList.toggle('text-cyan-400', isActive);
                 el.classList.toggle('text-slate-400', !isActive);
             });
         }
 
+        // --- LÓGICA DE TIEMPO ---
         function getMonthKey(offset = 0) {
             const d = new Date();
             d.setMonth(d.getMonth() + offset);
@@ -205,10 +274,39 @@
             return `${months[d.getMonth()]} ${d.getFullYear()}`;
         }
 
-        function addToCart(id) {
-            const p = state.products.find(x => x.id === id);
-            const inCart = cart.find(x => x.id === id);
-            if(inCart) inCart.qty++; else cart.push({...p, qty: 1});
+        // --- POS & CANTIDADES ---
+        function openQtySelector(productId) {
+            const p = state.products.find(x => x.id === productId);
+            if(!p) return;
+            selectedProductForQty = p;
+            document.getElementById('qty-product-name').innerText = p.name;
+            document.getElementById('manual-qty').value = 1;
+            updateQtySubtotal();
+            openModal('qty-modal');
+        }
+
+        function adjustQty(val) {
+            const input = document.getElementById('manual-qty');
+            let current = parseInt(input.value) || 0;
+            current = Math.max(1, current + val);
+            input.value = current;
+            updateQtySubtotal();
+        }
+
+        function updateQtySubtotal() {
+            if(!selectedProductForQty) return;
+            const q = parseInt(document.getElementById('manual-qty').value) || 1;
+            const price = selectedProductForQty.price || 0;
+            document.getElementById('qty-subtotal').innerText = `Subtotal: $ ${(price * q).toLocaleString()}`;
+        }
+
+        document.getElementById('manual-qty').addEventListener('input', updateQtySubtotal);
+
+        function confirmQtyAdd() {
+            const q = parseInt(document.getElementById('manual-qty').value) || 1;
+            const inCart = cart.find(x => x.id === selectedProductForQty.id);
+            if(inCart) inCart.qty += q; else cart.push({...selectedProductForQty, qty: q});
+            closeModal('qty-modal');
             render();
         }
 
@@ -221,19 +319,20 @@
         function calculateChange() {
             const total = getCartTotal();
             const pay = parseFloat(document.getElementById('payment-received').value) || 0;
-            document.getElementById('payment-change').innerText = pay >= total && total > 0 ? `Vuelto: $ ${(pay - total).toLocaleString()}` : `Vuelto: $ 0`;
+            const vuelto = Math.max(0, pay - total);
+            document.getElementById('payment-change').innerText = total > 0 ? `Vuelto: $ ${vuelto.toLocaleString()}` : "Vuelto: $ 0";
         }
 
         function confirmSale() {
             const t = getCartTotal();
-            if(t <= 0) return;
+            if(t <= 0 && cart.length === 0) return;
             state.balance += t;
             state.history.push({ 
                 id: Date.now(),
                 date: new Date().toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
                 month: getMonthKey(),
                 amount: t, 
-                desc: `Venta: ${cart.map(c => c.name).join(', ')}`,
+                desc: `Venta: ${cart.map(c => `${c.qty}x ${c.name}`).join(', ') || 'Venta Manual'}`,
                 type: 'sale'
             });
             clearCart();
@@ -241,7 +340,9 @@
         }
 
         function clearCart() { cart = []; document.getElementById('payment-received').value = ''; document.getElementById('cart-discount').value = ''; render(); }
+        function removeCartItem(id) { cart = cart.filter(i => i.id !== id); render(); }
 
+        // --- CAJA ---
         function setCashType(t) {
             state.cashType = t;
             document.getElementById('type-income').className = t === 'income' ? "flex-1 py-3 rounded-xl font-bold text-[11px] uppercase bg-blue-600 text-white" : "flex-1 py-3 rounded-xl font-bold text-[11px] uppercase text-slate-500";
@@ -287,140 +388,122 @@
             save(); switchView('pos-view');
         }
 
-        // --- Nueva Lógica de Agenda ---
+        // --- AGENDA & PAGOS ---
         function payMonth(month) {
             const toPay = state.fixed.filter(f => f.month === month);
             const total = toPay.reduce((acc, curr) => acc + curr.amount, 0);
-            
             state.balance -= total;
             state.history.push({
-                id: Date.now(),
-                date: new Date().toLocaleString('es-ES'),
-                month: getMonthKey(),
-                amount: -total,
-                desc: `Pago Agenda: ${month}`,
-                type: 'expense'
+                id: Date.now(), date: new Date().toLocaleString('es-ES'), month: getMonthKey(), amount: -total, desc: `Pago Agenda: ${month}`, type: 'expense'
             });
-
             state.fixed = state.fixed.filter(f => f.month !== month);
             save();
         }
 
-        function payIndividual(id) {
-            const item = state.fixed.find(x => x.id === id);
-            state.balance -= item.amount;
-            state.history.push({ 
-                id: Date.now(), 
-                date: new Date().toLocaleString('es-ES'), 
-                month: getMonthKey(), 
-                amount: -item.amount, 
-                desc: `Pago: ${item.name}`, 
-                type: 'expense' 
-            });
-            state.fixed = state.fixed.filter(x => x.id !== id);
-            save();
-        }
-
+        // --- PRODUCTOS ---
         function addProduct() {
             const n = document.getElementById('new-name'), p = document.getElementById('new-price');
-            if(!n.value || !p.value) return;
-            state.products.push({ id: Date.now(), name: n.value, price: parseFloat(p.value) });
+            if(!n.value) return;
+            state.products.push({ id: Date.now(), name: n.value, price: parseFloat(p.value) || 0 });
             n.value = ''; p.value = ''; save();
         }
 
         function removeProduct(id) { state.products = state.products.filter(x => x.id !== id); save(); }
+
+        // --- UI UTILS ---
         function openModal(id) { document.getElementById(id).classList.add('active'); document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); document.getElementById(id).classList.add('hidden'); }
 
+        // --- RENDERIZADO ---
         function render() {
             document.getElementById('main-balance').innerText = `$ ${state.balance.toLocaleString()}`;
             
-            // --- Stats Logic ---
+            // POS
+            document.getElementById('pos-grid').innerHTML = state.products.map(p => `
+                <button onclick="openQtySelector(${p.id})" class="glass p-5 rounded-[1.8rem] flex flex-col text-left active:scale-95">
+                    <span class="text-[9px] font-black text-slate-500 uppercase mb-1 truncate">${p.name}</span>
+                    <span class="text-lg font-bold text-white">${p.price > 0 ? '$ ' + p.price.toLocaleString() : 'Manual'}</span>
+                </button>
+            `).join('');
+
+            // Carrito
+            document.getElementById('cart-items').innerHTML = cart.map(i => `
+                <div class="flex justify-between items-center group">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-cyan-500 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-md">${i.qty}</span>
+                        <span class="text-white">${i.name}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-white">$ ${(i.qty*i.price).toLocaleString()}</span>
+                        <button onclick="removeCartItem(${i.id})" class="text-rose-500/50">✕</button>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-center text-slate-500 py-4 italic">Carrito vacío</p>';
+            document.getElementById('cart-total').innerText = `$ ${getCartTotal().toLocaleString()}`;
+
+            // Stats
             const monthSelector = document.getElementById('stats-month-filter');
-            const uniqueHistoryMonths = [...new Set(state.history.map(h => h.month))];
-            if(!uniqueHistoryMonths.includes(getMonthKey())) uniqueHistoryMonths.push(getMonthKey());
-            const currentSelectedMonth = monthSelector.value || getMonthKey();
-            monthSelector.innerHTML = uniqueHistoryMonths.sort().map(m => `<option value="${m}" ${m === currentSelectedMonth ? 'selected' : ''}>${m}</option>`).join('');
+            const uniqueMonths = [...new Set(state.history.map(h => h.month))];
+            if(!uniqueMonths.includes(getMonthKey())) uniqueMonths.push(getMonthKey());
+            const currentSel = monthSelector.value || getMonthKey();
+            monthSelector.innerHTML = uniqueMonths.sort().map(m => `<option value="${m}" ${m===currentSel?'selected':''}>${m}</option>`).join('');
 
-            const filteredHistory = state.history.filter(h => h.month === currentSelectedMonth);
-            const monthIncome = filteredHistory.filter(h => h.amount > 0).reduce((a, b) => a + b.amount, 0);
-            const monthExpense = filteredHistory.filter(h => h.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
-            const net = monthIncome - monthExpense;
+            const filtered = state.history.filter(h => h.month === currentSel);
+            const inc = filtered.filter(h => h.amount > 0).reduce((a,b) => a + b.amount, 0);
+            const exp = filtered.filter(h => h.amount < 0).reduce((a,b) => a + Math.abs(b.amount), 0);
+            document.getElementById('monthly-income').innerText = `$ ${inc.toLocaleString()}`;
+            document.getElementById('monthly-expense').innerText = `$ ${exp.toLocaleString()}`;
+            document.getElementById('monthly-net').innerText = `$ ${(inc-exp).toLocaleString()}`;
+            const totalM = inc + exp;
+            document.getElementById('bar-income').style.width = totalM > 0 ? (inc/totalM)*100 + '%' : '50%';
+            document.getElementById('bar-expense').style.width = totalM > 0 ? (exp/totalM)*100 + '%' : '50%';
 
-            document.getElementById('monthly-income').innerText = `$ ${monthIncome.toLocaleString()}`;
-            document.getElementById('monthly-expense').innerText = `$ ${monthExpense.toLocaleString()}`;
-            document.getElementById('monthly-net').innerText = `$ ${net.toLocaleString()}`;
-            
-            const totalMove = monthIncome + monthExpense;
-            document.getElementById('bar-income').style.width = `${totalMove > 0 ? (monthIncome/totalMove)*100 : 50}%`;
-            document.getElementById('bar-expense').style.width = `${totalMove > 0 ? (monthExpense/totalMove)*100 : 50}%`;
-
-            document.getElementById('monthly-details').innerHTML = filteredHistory.map(h => `
-                <div class="glass p-3 rounded-xl flex justify-between items-center text-[11px]">
+            document.getElementById('monthly-details').innerHTML = filtered.map(h => `
+                <div class="glass p-3 rounded-xl flex justify-between items-center text-[10px]">
                     <span class="text-slate-400">${h.date.split(',')[0]}</span>
                     <span class="text-white font-bold flex-1 px-4 truncate">${h.desc}</span>
                     <span class="${h.amount < 0 ? 'text-rose-400' : 'text-emerald-400'} font-black">$ ${Math.abs(h.amount).toLocaleString()}</span>
                 </div>
-            `).join('');
+            `).reverse().join('');
 
-            // --- Agenda Grouped Logic ---
-            const groupedFixed = state.fixed.reduce((groups, item) => {
-                const month = item.month;
-                if (!groups[month]) groups[month] = [];
-                groups[month].push(item);
-                return groups;
+            // Agenda Grupos
+            const groups = state.fixed.reduce((acc, item) => {
+                if(!acc[item.month]) acc[item.month] = [];
+                acc[item.month].push(item);
+                return acc;
             }, {});
 
-            const sortedMonths = Object.keys(groupedFixed).sort((a,b) => {
-                const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-                const [mA, yA] = a.split(' '), [mB, yB] = b.split(' ');
-                return yA !== yB ? yA - yB : months.indexOf(mA) - months.indexOf(mB);
-            });
-
-            document.getElementById('fixed-grouped-list').innerHTML = sortedMonths.map(month => {
-                const items = groupedFixed[month];
-                const totalMonth = items.reduce((s, i) => s + i.amount, 0);
+            document.getElementById('fixed-grouped-list').innerHTML = Object.keys(groups).sort().map(m => {
+                const total = groups[m].reduce((s,i) => s + i.amount, 0);
                 return `
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-end px-2">
-                            <div>
-                                <h3 class="text-lg font-black text-white">${month}</h3>
-                                <p class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Total: $ ${totalMonth.toLocaleString()}</p>
+                    <div class="space-y-3 px-2">
+                        <div class="flex justify-between items-end border-b border-white/5 pb-2">
+                            <div><h3 class="text-lg font-black text-white">${m}</h3><p class="text-[9px] text-cyan-400 font-bold uppercase">Deuda: $ ${total.toLocaleString()}</p></div>
+                            <button onclick="payMonth('${m}')" class="bg-cyan-500 text-slate-900 px-4 py-2 rounded-xl text-[9px] font-black uppercase">Pagar Todo</button>
+                        </div>
+                        ${groups[m].map(i => `
+                            <div class="glass p-4 rounded-2xl flex justify-between items-center text-xs">
+                                <span class="text-slate-300">${i.name}</span>
+                                <span class="text-white font-black">$ ${i.amount.toLocaleString()}</span>
                             </div>
-                            <button onclick="payMonth('${month}')" class="bg-cyan-500 text-slate-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-cyan-500/20 active:scale-95 transition-transform">Pagar Mes</button>
-                        </div>
-                        <div class="space-y-2">
-                            ${items.map(i => `
-                                <div class="glass p-4 rounded-2xl flex justify-between items-center border-l-2 border-l-slate-700">
-                                    <span class="text-xs text-slate-300 font-medium">${i.name}</span>
-                                    <div class="flex items-center gap-4">
-                                        <span class="text-xs font-black text-white">$ ${i.amount.toLocaleString()}</span>
-                                        <button onclick="payIndividual(${i.id})" class="text-rose-500/40 hover:text-rose-500 text-xs">✕</button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
+                        `).join('')}
                     </div>
                 `;
-            }).join('') || '<div class="text-center py-20 text-slate-500 text-xs font-bold uppercase tracking-widest">No hay pagos pendientes</div>';
+            }).join('') || '<p class="text-center py-20 text-slate-500 uppercase text-[10px] tracking-widest">Sin deudas</p>';
 
-            // --- POS Grid ---
-            document.getElementById('pos-grid').innerHTML = state.products.map(p => `
-                <button onclick="addToCart(${p.id})" class="glass p-5 rounded-[1.8rem] flex flex-col text-left active:scale-95 transition-transform">
-                    <span class="text-[9px] font-black text-slate-500 uppercase mb-1 truncate">${p.name}</span>
-                    <span class="text-lg font-bold text-white">$ ${p.price.toLocaleString()}</span>
-                </button>
+            document.getElementById('full-inventory').innerHTML = state.products.map(p => `
+                <div class="flex justify-between p-4 bg-slate-900/50 rounded-xl items-center mb-2">
+                    <span class="text-xs font-bold">${p.name} ($${p.price.toLocaleString()})</span>
+                    <button onclick="removeProduct(${p.id})" class="text-rose-500">✕</button>
+                </div>
             `).join('');
-
-            document.getElementById('cart-items').innerHTML = cart.map(i => `<div class="flex justify-between"><span>${i.qty}x ${i.name}</span><span class="font-bold text-cyan-400">$ ${(i.qty*i.price).toLocaleString()}</span></div>`).join('');
-            document.getElementById('cart-total').innerText = `$ ${getCartTotal().toLocaleString()}`;
-            document.getElementById('full-inventory').innerHTML = state.products.map(p => `<div class="flex justify-between p-4 bg-slate-900/50 rounded-xl items-center"><span class="text-xs font-bold">${p.name} ($${p.price})</span><button onclick="removeProduct(${p.id})" class="text-rose-500">✕</button></div>`).join('');
         }
 
-        const sel = document.getElementById('installments');
+        // Init Cuotas Select
+        const instSel = document.getElementById('installments');
         [1,2,3,6,12,18,24].forEach(i => {
-            const o = document.createElement('option'); o.value = i; o.textContent = `${i} Pago${i>1?'s':''}`;
-            sel.appendChild(o);
+            const opt = document.createElement('option'); opt.value = i; opt.innerText = i + (i>1?' Cuotas':' Pago');
+            instSel.appendChild(opt);
         });
 
         window.onload = render;
