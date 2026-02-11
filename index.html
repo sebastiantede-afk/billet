@@ -10,9 +10,8 @@
     <link rel="apple-touch-icon" href="img.jpg">
     <link rel="icon" type="image/jpeg" href="img.jpg">
     <meta name="theme-color" content="#020617">
-    <link rel="manifest" href="manifest.json">
 
-    <title>Billetera Pro - Full Navy</title>
+    <title>Billetera Pro - Agenda Inteligente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
@@ -22,7 +21,7 @@
         .view { display: none; }
         .view.active { display: block; animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .tab-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 500px; height: 70px; border-radius: 35px; z-index: 100; }
+        .tab-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 500px; height: 70px; border-radius: 35px; z-index: 100; }
         input, select, textarea { background: rgba(15, 23, 42, 0.8) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
@@ -34,8 +33,8 @@
         <div class="flex items-center gap-3">
             <img src="img.jpg" class="w-12 h-12 rounded-2xl object-cover border border-white/10" onerror="this.src='https://via.placeholder.com/48'">
             <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Capital Total</p>
-                <h1 id="main-balance" class="text-2xl font-extrabold text-white">$ 0</h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Capital Disponible</p>
+                <h1 id="main-balance" class="text-2xl font-extrabold text-white tracking-tighter">$ 0</h1>
             </div>
         </div>
         <button onclick="openModal('inventory-modal')" class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-cyan-500/20 active:scale-90 transition-transform">
@@ -47,15 +46,12 @@
     <div id="pos-view" class="view active">
         <main class="p-5 space-y-6">
             <div id="pos-grid" class="grid grid-cols-2 gap-3"></div>
-
             <section class="glass rounded-[2.5rem] p-7 space-y-4">
                 <div class="flex justify-between items-center">
                     <h2 class="font-bold text-white">Venta Actual</h2>
                     <button onclick="clearCart()" class="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-3 py-1.5 rounded-full uppercase">Limpiar</button>
                 </div>
-                
                 <div id="cart-items" class="space-y-2 max-h-40 overflow-y-auto no-scrollbar text-sm"></div>
-                
                 <div class="grid grid-cols-2 gap-3">
                     <div class="p-3 rounded-2xl bg-slate-900/50">
                         <label class="text-[9px] text-slate-500 uppercase font-bold block mb-1">Descuento %</label>
@@ -66,7 +62,6 @@
                         <input type="number" id="payment-received" oninput="calculateChange()" placeholder="0" class="w-full bg-transparent outline-none font-bold text-white text-sm">
                     </div>
                 </div>
-
                 <div class="flex justify-between items-end pt-2">
                     <div>
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Total</p>
@@ -74,18 +69,12 @@
                     </div>
                     <div id="payment-change" class="text-emerald-400 font-bold text-sm mb-1">Vuelto: $0</div>
                 </div>
-                
-                <button onclick="confirmSale()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-[1.5rem] font-bold shadow-lg active:scale-95 transition-transform">FINALIZAR COBRO</button>
-            </section>
-
-            <section class="pb-10">
-                <h2 class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4">Movimientos</h2>
-                <div id="history-log" class="space-y-3"></div>
+                <button onclick="confirmSale()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-[1.5rem] font-bold shadow-lg active:scale-95 transition-transform uppercase text-xs tracking-widest">Finalizar Cobro</button>
             </section>
         </main>
     </div>
 
-    <!-- VISTA 2: CAJA -->
+    <!-- VISTA 2: CAJA (INGRESOS/EGRESOS) -->
     <div id="cash-view" class="view">
         <main class="p-6 space-y-6">
             <div class="glass rounded-[2.5rem] p-8 space-y-6">
@@ -93,10 +82,8 @@
                     <button id="type-income" onclick="setCashType('income')" class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase bg-blue-600 text-white">Ingreso</button>
                     <button id="type-expense" onclick="setCashType('expense')" class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase text-slate-500">Egreso</button>
                 </div>
-
                 <input type="number" id="cash-amount" oninput="renderInstallmentCalc()" class="w-full p-6 rounded-2xl text-4xl font-black text-center" placeholder="0.00">
                 <textarea id="cash-obs" rows="2" class="w-full p-4 rounded-2xl text-sm" placeholder="Descripción..."></textarea>
-
                 <div id="expense-options" class="hidden space-y-4">
                     <div class="flex gap-2">
                         <button id="method-cash" onclick="setCashMethod('cash')" class="flex-1 py-3 rounded-xl font-bold text-[10px] uppercase bg-slate-800 text-cyan-400 border border-cyan-400/20">Efectivo</button>
@@ -107,62 +94,87 @@
                         <p id="installment-info" class="text-center text-xs text-cyan-400 font-bold"></p>
                     </div>
                 </div>
-
                 <button onclick="registerCashMovement()" class="w-full py-5 bg-white text-slate-900 rounded-[1.5rem] font-black active:scale-95 uppercase tracking-widest text-xs">Registrar Movimiento</button>
             </div>
         </main>
     </div>
 
-    <!-- VISTA 3: AGENDA -->
+    <!-- VISTA 3: STATS (CONTROL MENSUAL) -->
+    <div id="stats-view" class="view">
+        <main class="p-6 space-y-6">
+            <header class="flex justify-between items-center px-2">
+                <h2 class="text-2xl font-black text-white">Estadísticas</h2>
+                <select id="stats-month-filter" onchange="render()" class="bg-slate-900 text-white text-xs font-bold p-2 rounded-xl border-none outline-none"></select>
+            </header>
+            <div id="stats-content" class="space-y-4">
+                <div class="glass p-6 rounded-[2rem] space-y-4">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Balance Neto</p>
+                            <h3 id="monthly-net" class="text-3xl font-black text-white">$ 0</h3>
+                        </div>
+                        <div id="monthly-performance" class="text-[10px] font-bold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 uppercase tracking-widest">Positivo</div>
+                    </div>
+                    <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex">
+                        <div id="bar-income" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
+                        <div id="bar-expense" class="h-full bg-rose-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div><p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Ingresos</p><p id="monthly-income" class="text-lg font-bold text-emerald-400">$ 0</p></div>
+                        <div class="text-right"><p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Gastos</p><p id="monthly-expense" class="text-lg font-bold text-rose-400">$ 0</p></div>
+                    </div>
+                </div>
+                <div id="monthly-details" class="space-y-2"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- VISTA 4: AGENDA (AGRUPADA POR MES) -->
     <div id="fixed-view" class="view">
         <main class="p-6 space-y-6">
             <h2 class="text-2xl font-black text-white px-2">Agenda de Pagos</h2>
-            <div id="fixed-list" class="space-y-4"></div>
+            <div id="fixed-grouped-list" class="space-y-8">
+                <!-- Grupos mensuales se insertan aquí -->
+            </div>
         </main>
     </div>
 
     <!-- Tab Bar -->
-    <div class="tab-bar glass flex justify-around items-center border-t border-white/10">
+    <div class="tab-bar glass flex justify-around items-center border-t border-white/10 px-2">
         <button onclick="switchView('pos-view')" id="tab-pos" class="flex flex-col items-center gap-1 text-cyan-400">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-width="2" /></svg>
-            <span class="text-[8px] font-bold uppercase">POS</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-width="2" /></svg>
+            <span class="text-[7px] font-bold uppercase">POS</span>
         </button>
         <button onclick="switchView('cash-view')" id="tab-cash" class="flex flex-col items-center gap-1 text-slate-400">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" /></svg>
-            <span class="text-[8px] font-bold uppercase">Caja</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" /></svg>
+            <span class="text-[7px] font-bold uppercase">Caja</span>
+        </button>
+        <button onclick="switchView('stats-view')" id="tab-stats" class="flex flex-col items-center gap-1 text-slate-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-width="2" /></svg>
+            <span class="text-[7px] font-bold uppercase">Stats</span>
         </button>
         <button onclick="switchView('fixed-view')" id="tab-fixed" class="flex flex-col items-center gap-1 text-slate-400">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" /></svg>
-            <span class="text-[8px] font-bold uppercase">Agenda</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" /></svg>
+            <span class="text-[7px] font-bold uppercase">Agenda</span>
         </button>
     </div>
 
     <!-- Modal Catálogo -->
     <div id="inventory-modal" class="fixed inset-0 z-[120] bg-black/80 flex items-end justify-center hidden opacity-0 transition-opacity [&.active]:flex [&.active]:opacity-100">
         <div class="glass w-full max-w-md rounded-t-[3rem] p-8 space-y-4 max-h-[85vh] overflow-y-auto no-scrollbar">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-white text-xl">Catálogo</h3>
-                <button onclick="closeModal('inventory-modal')" class="text-slate-500 text-xl">✕</button>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <input type="text" id="new-name" placeholder="Nombre" class="p-4 rounded-xl text-sm">
-                <input type="number" id="new-price" placeholder="Precio" class="p-4 rounded-xl text-sm font-bold">
-            </div>
+            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white text-xl">Catálogo</h3><button onclick="closeModal('inventory-modal')" class="text-slate-500 text-xl">✕</button></div>
+            <div class="grid grid-cols-2 gap-2"><input type="text" id="new-name" placeholder="Nombre" class="p-4 rounded-xl text-sm"><input type="number" id="new-price" placeholder="Precio" class="p-4 rounded-xl text-sm font-bold"></div>
             <button onclick="addProduct()" class="w-full py-4 bg-cyan-500 text-slate-900 rounded-2xl font-black uppercase text-[10px]">Guardar Producto</button>
             <div id="full-inventory" class="space-y-2 pt-4"></div>
         </div>
     </div>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
-        }
-
         let state = JSON.parse(localStorage.getItem('billetera_full_data')) || {
             balance: 0,
             products: [{id: 1, name: 'Ejemplo', price: 1000}],
             history: [],
-            fixed: [],
+            fixed: [], // Cuotas futuras
             cashType: 'income',
             cashMethod: 'cash'
         };
@@ -177,14 +189,22 @@
         function switchView(id) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            ['pos', 'cash', 'fixed'].forEach(t => {
+            ['pos', 'cash', 'stats', 'fixed'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
-                el.classList.toggle('text-cyan-400', `view-${t}` === id.replace('-view', ''));
-                el.classList.toggle('text-slate-400', `view-${t}` !== id.replace('-view', ''));
+                if(!el) return;
+                const isActive = `view-${t}` === id.replace('-view', '');
+                el.classList.toggle('text-cyan-400', isActive);
+                el.classList.toggle('text-slate-400', !isActive);
             });
         }
 
-        // --- POS Logic ---
+        function getMonthKey(offset = 0) {
+            const d = new Date();
+            d.setMonth(d.getMonth() + offset);
+            const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            return `${months[d.getMonth()]} ${d.getFullYear()}`;
+        }
+
         function addToCart(id) {
             const p = state.products.find(x => x.id === id);
             const inCart = cart.find(x => x.id === id);
@@ -208,38 +228,20 @@
             const t = getCartTotal();
             if(t <= 0) return;
             state.balance += t;
-            // Guardamos un ID único para poder anular luego
             state.history.push({ 
                 id: Date.now(),
-                date: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 
+                date: new Date().toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+                month: getMonthKey(),
                 amount: t, 
                 desc: `Venta: ${cart.map(c => c.name).join(', ')}`,
-                isSale: true 
+                type: 'sale'
             });
             clearCart();
             save();
         }
 
-        function clearCart() {
-            cart = [];
-            document.getElementById('payment-received').value = '';
-            document.getElementById('cart-discount').value = '';
-            render();
-        }
+        function clearCart() { cart = []; document.getElementById('payment-received').value = ''; document.getElementById('cart-discount').value = ''; render(); }
 
-        // --- Función para Anular ---
-        function voidMovement(id) {
-            const move = state.history.find(h => h.id === id);
-            if (!move) return;
-            
-            // Revertimos el saldo
-            state.balance -= move.amount;
-            // Eliminamos del historial
-            state.history = state.history.filter(h => h.id !== id);
-            save();
-        }
-
-        // --- CAJA Logic ---
         function setCashType(t) {
             state.cashType = t;
             document.getElementById('type-income').className = t === 'income' ? "flex-1 py-3 rounded-xl font-bold text-[11px] uppercase bg-blue-600 text-white" : "flex-1 py-3 rounded-xl font-bold text-[11px] uppercase text-slate-500";
@@ -264,116 +266,157 @@
             const val = parseFloat(document.getElementById('cash-amount').value);
             const obs = document.getElementById('cash-obs').value || 'Movimiento Manual';
             if(!val) return;
-
             const moveId = Date.now();
 
             if(state.cashType === 'income') {
                 state.balance += val;
-                state.history.push({ id: moveId, date: 'Manual', amount: val, desc: obs });
+                state.history.push({ id: moveId, date: new Date().toLocaleString('es-ES'), month: getMonthKey(), amount: val, desc: obs, type: 'income' });
             } else {
                 if(state.cashMethod === 'cash') {
                     state.balance -= val;
-                    state.history.push({ id: moveId, date: 'Manual', amount: -val, desc: obs });
+                    state.history.push({ id: moveId, date: new Date().toLocaleString('es-ES'), month: getMonthKey(), amount: -val, desc: obs, type: 'expense' });
                 } else {
                     const ins = parseInt(document.getElementById('installments').value);
-                    for(let i=0; i<ins; i++) {
-                        state.fixed.push({ id: moveId + i, name: `Cuota ${i+1}/${ins}: ${obs}`, amount: val/ins });
+                    for(let i=1; i<=ins; i++) {
+                        state.fixed.push({ id: moveId + i, name: `${obs} (${i}/${ins})`, amount: val/ins, month: getMonthKey(i) });
                     }
-                    state.history.push({ id: moveId, date: 'Tarjeta', amount: 0, desc: `TC: ${obs} (${ins} cuotas)` });
+                    state.history.push({ id: moveId, date: new Date().toLocaleString('es-ES'), month: getMonthKey(), amount: 0, desc: `Tarjeta: ${obs} (${ins} cuotas)`, type: 'card' });
                 }
             }
-            document.getElementById('cash-amount').value = '';
-            document.getElementById('cash-obs').value = '';
-            save();
-            switchView('pos-view');
+            document.getElementById('cash-amount').value = ''; document.getElementById('cash-obs').value = '';
+            save(); switchView('pos-view');
         }
 
-        function payFixed(id) {
+        // --- Nueva Lógica de Agenda ---
+        function payMonth(month) {
+            const toPay = state.fixed.filter(f => f.month === month);
+            const total = toPay.reduce((acc, curr) => acc + curr.amount, 0);
+            
+            state.balance -= total;
+            state.history.push({
+                id: Date.now(),
+                date: new Date().toLocaleString('es-ES'),
+                month: getMonthKey(),
+                amount: -total,
+                desc: `Pago Agenda: ${month}`,
+                type: 'expense'
+            });
+
+            state.fixed = state.fixed.filter(f => f.month !== month);
+            save();
+        }
+
+        function payIndividual(id) {
             const item = state.fixed.find(x => x.id === id);
             state.balance -= item.amount;
-            state.history.push({ id: Date.now(), date: 'Agenda', amount: -item.amount, desc: `Pago: ${item.name}` });
+            state.history.push({ 
+                id: Date.now(), 
+                date: new Date().toLocaleString('es-ES'), 
+                month: getMonthKey(), 
+                amount: -item.amount, 
+                desc: `Pago: ${item.name}`, 
+                type: 'expense' 
+            });
             state.fixed = state.fixed.filter(x => x.id !== id);
             save();
         }
 
-        // --- Catálogo Logic ---
         function addProduct() {
-            const n = document.getElementById('new-name');
-            const p = document.getElementById('new-price');
+            const n = document.getElementById('new-name'), p = document.getElementById('new-price');
             if(!n.value || !p.value) return;
             state.products.push({ id: Date.now(), name: n.value, price: parseFloat(p.value) });
-            n.value = ''; p.value = '';
-            save();
+            n.value = ''; p.value = ''; save();
         }
 
-        function removeProduct(id) {
-            state.products = state.products.filter(x => x.id !== id);
-            save();
-        }
-
+        function removeProduct(id) { state.products = state.products.filter(x => x.id !== id); save(); }
         function openModal(id) { document.getElementById(id).classList.add('active'); document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); document.getElementById(id).classList.add('hidden'); }
 
         function render() {
             document.getElementById('main-balance').innerText = `$ ${state.balance.toLocaleString()}`;
             
-            const grid = document.getElementById('pos-grid');
-            grid.innerHTML = state.products.map(p => `
+            // --- Stats Logic ---
+            const monthSelector = document.getElementById('stats-month-filter');
+            const uniqueHistoryMonths = [...new Set(state.history.map(h => h.month))];
+            if(!uniqueHistoryMonths.includes(getMonthKey())) uniqueHistoryMonths.push(getMonthKey());
+            const currentSelectedMonth = monthSelector.value || getMonthKey();
+            monthSelector.innerHTML = uniqueHistoryMonths.sort().map(m => `<option value="${m}" ${m === currentSelectedMonth ? 'selected' : ''}>${m}</option>`).join('');
+
+            const filteredHistory = state.history.filter(h => h.month === currentSelectedMonth);
+            const monthIncome = filteredHistory.filter(h => h.amount > 0).reduce((a, b) => a + b.amount, 0);
+            const monthExpense = filteredHistory.filter(h => h.amount < 0).reduce((a, b) => a + Math.abs(b.amount), 0);
+            const net = monthIncome - monthExpense;
+
+            document.getElementById('monthly-income').innerText = `$ ${monthIncome.toLocaleString()}`;
+            document.getElementById('monthly-expense').innerText = `$ ${monthExpense.toLocaleString()}`;
+            document.getElementById('monthly-net').innerText = `$ ${net.toLocaleString()}`;
+            
+            const totalMove = monthIncome + monthExpense;
+            document.getElementById('bar-income').style.width = `${totalMove > 0 ? (monthIncome/totalMove)*100 : 50}%`;
+            document.getElementById('bar-expense').style.width = `${totalMove > 0 ? (monthExpense/totalMove)*100 : 50}%`;
+
+            document.getElementById('monthly-details').innerHTML = filteredHistory.map(h => `
+                <div class="glass p-3 rounded-xl flex justify-between items-center text-[11px]">
+                    <span class="text-slate-400">${h.date.split(',')[0]}</span>
+                    <span class="text-white font-bold flex-1 px-4 truncate">${h.desc}</span>
+                    <span class="${h.amount < 0 ? 'text-rose-400' : 'text-emerald-400'} font-black">$ ${Math.abs(h.amount).toLocaleString()}</span>
+                </div>
+            `).join('');
+
+            // --- Agenda Grouped Logic ---
+            const groupedFixed = state.fixed.reduce((groups, item) => {
+                const month = item.month;
+                if (!groups[month]) groups[month] = [];
+                groups[month].push(item);
+                return groups;
+            }, {});
+
+            const sortedMonths = Object.keys(groupedFixed).sort((a,b) => {
+                const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+                const [mA, yA] = a.split(' '), [mB, yB] = b.split(' ');
+                return yA !== yB ? yA - yB : months.indexOf(mA) - months.indexOf(mB);
+            });
+
+            document.getElementById('fixed-grouped-list').innerHTML = sortedMonths.map(month => {
+                const items = groupedFixed[month];
+                const totalMonth = items.reduce((s, i) => s + i.amount, 0);
+                return `
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-end px-2">
+                            <div>
+                                <h3 class="text-lg font-black text-white">${month}</h3>
+                                <p class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Total: $ ${totalMonth.toLocaleString()}</p>
+                            </div>
+                            <button onclick="payMonth('${month}')" class="bg-cyan-500 text-slate-900 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-cyan-500/20 active:scale-95 transition-transform">Pagar Mes</button>
+                        </div>
+                        <div class="space-y-2">
+                            ${items.map(i => `
+                                <div class="glass p-4 rounded-2xl flex justify-between items-center border-l-2 border-l-slate-700">
+                                    <span class="text-xs text-slate-300 font-medium">${i.name}</span>
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-xs font-black text-white">$ ${i.amount.toLocaleString()}</span>
+                                        <button onclick="payIndividual(${i.id})" class="text-rose-500/40 hover:text-rose-500 text-xs">✕</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('') || '<div class="text-center py-20 text-slate-500 text-xs font-bold uppercase tracking-widest">No hay pagos pendientes</div>';
+
+            // --- POS Grid ---
+            document.getElementById('pos-grid').innerHTML = state.products.map(p => `
                 <button onclick="addToCart(${p.id})" class="glass p-5 rounded-[1.8rem] flex flex-col text-left active:scale-95 transition-transform">
                     <span class="text-[9px] font-black text-slate-500 uppercase mb-1 truncate">${p.name}</span>
                     <span class="text-lg font-bold text-white">$ ${p.price.toLocaleString()}</span>
                 </button>
             `).join('');
 
-            const cartEl = document.getElementById('cart-items');
-            cartEl.innerHTML = cart.map(i => `
-                <div class="flex justify-between items-center text-slate-300">
-                    <span>${i.qty}x ${i.name}</span>
-                    <span class="font-bold text-cyan-400">$ ${(i.qty*i.price).toLocaleString()}</span>
-                </div>
-            `).join('');
-            
+            document.getElementById('cart-items').innerHTML = cart.map(i => `<div class="flex justify-between"><span>${i.qty}x ${i.name}</span><span class="font-bold text-cyan-400">$ ${(i.qty*i.price).toLocaleString()}</span></div>`).join('');
             document.getElementById('cart-total').innerText = `$ ${getCartTotal().toLocaleString()}`;
-
-            const histEl = document.getElementById('history-log');
-            histEl.innerHTML = state.history.slice(-15).reverse().map(h => `
-                <div class="glass p-4 rounded-2xl flex justify-between items-center group">
-                    <div class="truncate pr-4 flex-1">
-                        <p class="text-[8px] text-slate-500 uppercase font-black">${h.date}</p>
-                        <p class="text-xs text-white truncate">${h.desc}</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="font-bold ${h.amount < 0 ? 'text-rose-400' : 'text-emerald-400'} whitespace-nowrap">
-                            ${h.amount === 0 ? 'TC' : '$ ' + Math.abs(h.amount).toLocaleString()}
-                        </span>
-                        <button onclick="voidMovement(${h.id})" class="text-rose-500/40 hover:text-rose-500 transition-colors p-1" title="Anular">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-
-            const fixedEl = document.getElementById('fixed-list');
-            fixedEl.innerHTML = state.fixed.map(fe => `
-                <div class="glass p-5 rounded-3xl flex justify-between items-center border-l-4 border-l-cyan-500">
-                    <div class="truncate pr-4">
-                        <p class="text-sm font-bold text-white">${fe.name}</p>
-                        <p class="text-xs text-cyan-400 font-black">$ ${fe.amount.toLocaleString()}</p>
-                    </div>
-                    <button onclick="payFixed(${fe.id})" class="bg-white text-slate-900 px-5 py-2 rounded-xl text-[10px] font-black uppercase whitespace-nowrap">Pagar</button>
-                </div>
-            `).join('');
-
-            const invEl = document.getElementById('full-inventory');
-            invEl.innerHTML = state.products.map(p => `
-                <div class="flex justify-between p-4 bg-slate-900/50 rounded-xl items-center">
-                    <span class="text-xs font-bold">${p.name} ($${p.price})</span>
-                    <button onclick="removeProduct(${p.id})" class="text-rose-500 font-bold px-2">✕</button>
-                </div>
-            `).join('');
+            document.getElementById('full-inventory').innerHTML = state.products.map(p => `<div class="flex justify-between p-4 bg-slate-900/50 rounded-xl items-center"><span class="text-xs font-bold">${p.name} ($${p.price})</span><button onclick="removeProduct(${p.id})" class="text-rose-500">✕</button></div>`).join('');
         }
 
-        // Init cuotas
         const sel = document.getElementById('installments');
         [1,2,3,6,12,18,24].forEach(i => {
             const o = document.createElement('option'); o.value = i; o.textContent = `${i} Pago${i>1?'s':''}`;
