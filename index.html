@@ -11,7 +11,7 @@
     <link rel="icon" type="image/jpeg" href="img.jpg">
     <meta name="theme-color" content="#020617">
 
-    <title>Billetera Pro - Backup & POS</title>
+    <title>Billetera Pro - Gestión Total</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
@@ -25,6 +25,9 @@
         input, select, textarea { background: rgba(15, 23, 42, 0.8) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: white !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .qty-input::-webkit-inner-spin-button, .qty-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Estilos para el modal de cantidad */
+        .modal-overlay { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); }
     </style>
 </head>
 <body class="pb-32">
@@ -52,17 +55,17 @@
             
             <section class="glass rounded-[2.5rem] p-7 space-y-4">
                 <div class="flex justify-between items-center">
-                    <h2 class="font-bold text-white">Venta Actual</h2>
+                    <h2 class="font-bold text-white text-sm uppercase tracking-widest opacity-70">Venta Actual</h2>
                     <button onclick="clearCart()" class="text-[10px] text-rose-400 font-bold bg-rose-500/10 px-3 py-1.5 rounded-full uppercase">Vaciar</button>
                 </div>
                 <div id="cart-items" class="space-y-3 max-h-48 overflow-y-auto no-scrollbar text-sm"></div>
                 
                 <div class="grid grid-cols-2 gap-3 pt-2">
-                    <div class="p-3 rounded-2xl bg-slate-900/50">
+                    <div class="p-3 rounded-2xl bg-slate-900/50 border border-white/5">
                         <label class="text-[9px] text-slate-500 uppercase font-bold block mb-1">Dcto %</label>
                         <input type="number" id="cart-discount" oninput="render(); calculateChange();" placeholder="0" class="w-full bg-transparent outline-none font-bold text-cyan-400 text-sm">
                     </div>
-                    <div class="p-3 rounded-2xl bg-slate-900/50">
+                    <div class="p-3 rounded-2xl bg-slate-900/50 border border-white/5">
                         <label class="text-[9px] text-slate-500 uppercase font-bold block mb-1">Paga con $</label>
                         <input type="number" id="payment-received" oninput="calculateChange()" placeholder="0" class="w-full bg-transparent outline-none font-bold text-white text-sm">
                     </div>
@@ -73,7 +76,7 @@
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Total</p>
                         <span id="cart-total" class="text-4xl font-black text-white tracking-tighter">$ 0</span>
                     </div>
-                    <div id="payment-change" class="text-emerald-400 font-bold text-sm mb-1">Vuelto: $0</div>
+                    <div id="payment-change" class="text-emerald-400 font-bold text-sm mb-1 uppercase text-[10px]">Vuelto: $0</div>
                 </div>
                 <button onclick="confirmSale()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-[1.5rem] font-bold shadow-lg active:scale-95 transition-transform uppercase text-xs tracking-widest">Cobrar Ahora</button>
             </section>
@@ -85,11 +88,12 @@
         <main class="p-6 space-y-6">
             <div class="glass rounded-[2.5rem] p-8 space-y-6">
                 <div class="flex p-1.5 bg-slate-900 rounded-2xl">
-                    <button id="type-income" onclick="setCashType('income')" class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase bg-blue-600 text-white">Ingreso</button>
-                    <button id="type-expense" onclick="setCashType('expense')" class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase text-slate-500">Egreso</button>
+                    <button id="type-income" onclick="setCashType('income')" class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase bg-blue-600 text-white transition-all">Ingreso</button>
+                    <button id="type-expense" onclick="setCashType('expense')" class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase text-slate-500 transition-all">Egreso</button>
                 </div>
-                <input type="number" id="cash-amount" oninput="renderInstallmentCalc()" class="w-full p-6 rounded-2xl text-4xl font-black text-center" placeholder="0.00">
-                <textarea id="cash-obs" rows="2" class="w-full p-4 rounded-2xl text-sm" placeholder="¿En qué se gastó o de dónde vino?"></textarea>
+                <input type="number" id="cash-amount" oninput="renderInstallmentCalc()" class="w-full p-6 rounded-2xl text-4xl font-black text-center bg-slate-950 border border-white/5" placeholder="0.00">
+                <textarea id="cash-obs" rows="2" class="w-full p-4 rounded-2xl text-sm" placeholder="Descripción del movimiento..."></textarea>
+                
                 <div id="expense-options" class="hidden space-y-4">
                     <div class="flex gap-2">
                         <button id="method-cash" onclick="setCashMethod('cash')" class="flex-1 py-3 rounded-xl font-bold text-[10px] uppercase bg-slate-800 text-cyan-400 border border-cyan-400/20">Efectivo</button>
@@ -97,10 +101,10 @@
                     </div>
                     <div id="card-fields" class="hidden">
                         <select id="installments" onchange="renderInstallmentCalc()" class="w-full p-4 rounded-xl mb-2"></select>
-                        <p id="installment-info" class="text-center text-xs text-cyan-400 font-bold"></p>
+                        <p id="installment-info" class="text-center text-xs text-cyan-400 font-bold uppercase tracking-tight"></p>
                     </div>
                 </div>
-                <button onclick="registerCashMovement()" class="w-full py-5 bg-white text-slate-900 rounded-[1.5rem] font-black active:scale-95 uppercase tracking-widest text-xs">Guardar Movimiento</button>
+                <button onclick="registerCashMovement()" class="w-full py-5 bg-white text-slate-900 rounded-[1.5rem] font-black active:scale-95 transition-all uppercase tracking-widest text-xs shadow-xl shadow-white/5">Guardar Movimiento</button>
             </div>
         </main>
     </div>
@@ -110,27 +114,33 @@
         <main class="p-6 space-y-6">
             <header class="flex justify-between items-center px-2">
                 <h2 class="text-2xl font-black text-white">Historial</h2>
-                <select id="stats-month-filter" onchange="render()" class="bg-slate-900 text-white text-xs font-bold p-2 rounded-xl"></select>
+                <select id="stats-month-filter" onchange="render()" class="bg-slate-900 text-white text-xs font-bold p-2 px-4 rounded-xl border border-white/10"></select>
             </header>
             <div id="stats-content" class="space-y-4">
-                <div class="glass p-6 rounded-[2rem] space-y-4">
+                <div class="glass p-6 rounded-[2rem] space-y-4 border border-white/10">
                     <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1 text-center">Rendimiento Mensual</p>
-                    <h3 id="monthly-net" class="text-3xl font-black text-white text-center">$ 0</h3>
-                    <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex">
-                        <div id="bar-income" class="h-full bg-emerald-500" style="width: 50%"></div>
-                        <div id="bar-expense" class="h-full bg-rose-500" style="width: 50%"></div>
+                    <h3 id="monthly-net" class="text-3xl font-black text-white text-center tracking-tighter">$ 0</h3>
+                    <div class="h-2 w-full bg-slate-800/50 rounded-full overflow-hidden flex">
+                        <div id="bar-income" class="h-full bg-emerald-500 transition-all duration-500" style="width: 50%"></div>
+                        <div id="bar-expense" class="h-full bg-rose-500 transition-all duration-500" style="width: 50%"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 pt-2">
-                        <div><p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Entradas</p><p id="monthly-income" class="text-lg font-bold text-emerald-400">$ 0</p></div>
-                        <div class="text-right"><p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Salidas</p><p id="monthly-expense" class="text-lg font-bold text-rose-400">$ 0</p></div>
+                        <div class="bg-emerald-500/5 p-3 rounded-2xl border border-emerald-500/10">
+                            <p class="text-[9px] text-emerald-500/70 font-bold uppercase mb-1">Entradas</p>
+                            <p id="monthly-income" class="text-lg font-bold text-emerald-400">$ 0</p>
+                        </div>
+                        <div class="text-right bg-rose-500/5 p-3 rounded-2xl border border-rose-500/10">
+                            <p class="text-[9px] text-rose-500/70 font-bold uppercase mb-1">Salidas</p>
+                            <p id="monthly-expense" class="text-lg font-bold text-rose-400">$ 0</p>
+                        </div>
                     </div>
                 </div>
-                <div id="monthly-details" class="space-y-2"></div>
+                <div id="monthly-details" class="space-y-2 pb-10"></div>
             </div>
         </main>
     </div>
 
-    <!-- VISTA 4: AGENDA (DEUDAS) -->
+    <!-- VISTA 4: AGENDA -->
     <div id="fixed-view" class="view">
         <main class="p-6 space-y-6">
             <h2 class="text-2xl font-black text-white px-2">Próximos Pagos</h2>
@@ -138,46 +148,63 @@
         </main>
     </div>
 
-    <!-- Modal Cantidad Manual -->
-    <div id="qty-modal" class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center hidden opacity-0 transition-opacity [&.active]:flex [&.active]:opacity-100">
-        <div class="glass w-[85%] max-w-xs rounded-[3rem] p-8 space-y-6 text-center border-white/20">
-            <h3 id="qty-product-name" class="font-bold text-white text-lg">Producto</h3>
-            <div class="flex items-center justify-between gap-4">
-                <button onclick="adjustQty(-1)" class="w-14 h-14 rounded-2xl bg-slate-800 text-white text-2xl font-bold active:scale-90">-</button>
-                <input type="number" id="manual-qty" class="qty-input w-20 text-4xl font-black text-center bg-transparent text-cyan-400" value="1">
-                <button onclick="adjustQty(1)" class="w-14 h-14 rounded-2xl bg-slate-800 text-white text-2xl font-bold active:scale-90">+</button>
+    <!-- Modales -->
+    <div id="qty-modal" class="fixed inset-0 z-[200] modal-overlay flex items-center justify-center hidden opacity-0 transition-opacity [&.active]:flex [&.active]:opacity-100 p-6">
+        <div class="glass w-full max-w-xs rounded-[3rem] p-8 space-y-6 text-center border-white/20 shadow-2xl">
+            <div>
+                <p class="text-[9px] text-cyan-400 font-black uppercase tracking-[0.2em] mb-1">Definir Cantidad</p>
+                <h3 id="qty-product-name" class="font-black text-white text-xl tracking-tight uppercase">Producto</h3>
             </div>
-            <p id="qty-subtotal" class="text-slate-400 font-bold text-sm">$ 0</p>
+            
+            <div class="flex items-center justify-center gap-6">
+                <button onclick="adjustQty(-1)" class="w-14 h-14 rounded-2xl bg-white/5 text-white text-2xl font-bold active:scale-90 active:bg-rose-500 transition-all border border-white/10 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 12H4" stroke-width="3" stroke-linecap="round"/></svg>
+                </button>
+                
+                <div class="flex flex-col items-center">
+                    <input type="number" id="manual-qty" class="qty-input w-24 text-5xl font-black text-center bg-transparent text-white border-none outline-none focus:ring-0" value="1" min="1" oninput="updateQtySubtotal()">
+                    <span class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Unidades</span>
+                </div>
+                
+                <button onclick="adjustQty(1)" class="w-14 h-14 rounded-2xl bg-white/5 text-white text-2xl font-bold active:scale-90 active:bg-cyan-500 transition-all border border-white/10 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="3" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+
+            <div class="py-4 px-6 bg-slate-950/50 rounded-2xl border border-white/5">
+                <p id="qty-subtotal" class="text-cyan-400 font-black text-lg tracking-tight">$ 0</p>
+                <p class="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Subtotal del item</p>
+            </div>
+
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="closeModal('qty-modal')" class="py-4 bg-slate-800 text-slate-400 rounded-2xl font-bold uppercase text-[10px]">Cerrar</button>
-                <button onclick="confirmQtyAdd()" class="py-4 bg-cyan-500 text-slate-900 rounded-2xl font-black uppercase text-[10px]">Añadir</button>
+                <button onclick="closeModal('qty-modal')" class="py-5 bg-slate-900 text-slate-400 rounded-2xl font-bold uppercase text-[10px] tracking-widest active:scale-95 transition-all">Cancelar</button>
+                <button onclick="confirmQtyAdd()" class="py-5 bg-cyan-500 text-slate-900 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-cyan-500/20 active:scale-95 transition-all">Aceptar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Catálogo & Backup -->
     <div id="inventory-modal" class="fixed inset-0 z-[120] bg-black/80 flex items-end justify-center hidden opacity-0 transition-opacity [&.active]:flex [&.active]:opacity-100">
-        <div class="glass w-full max-w-md rounded-t-[3rem] p-8 space-y-4 max-h-[85vh] overflow-y-auto no-scrollbar">
-            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white text-xl">Gestión</h3><button onclick="closeModal('inventory-modal')" class="text-slate-500 text-xl">✕</button></div>
+        <div class="glass w-full max-w-md rounded-t-[3rem] p-8 space-y-4 max-h-[85vh] overflow-y-auto no-scrollbar border-t border-white/20">
+            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-white text-xl">Gestión de App</h3><button onclick="closeModal('inventory-modal')" class="text-slate-500 text-xl p-2">✕</button></div>
             
-            <div class="p-4 bg-slate-900/50 rounded-2xl space-y-3">
-                <p class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Copia de Seguridad (No perder datos)</p>
+            <div class="p-4 bg-slate-950 rounded-2xl space-y-3 border border-white/5">
+                <p class="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Respaldo</p>
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="exportData()" class="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-[9px] font-bold uppercase">Descargar Backup</button>
-                    <label class="bg-white/10 hover:bg-white/20 p-3 rounded-xl text-[9px] font-bold uppercase text-center cursor-pointer">
-                        Subir Backup
+                    <button onclick="exportData()" class="bg-white/5 hover:bg-white/10 p-4 rounded-xl text-[9px] font-bold uppercase transition-colors">Exportar JSON</button>
+                    <label class="bg-white/5 hover:bg-white/10 p-4 rounded-xl text-[9px] font-bold uppercase text-center cursor-pointer transition-colors">
+                        Importar JSON
                         <input type="file" id="import-file" onchange="importData(event)" class="hidden">
                     </label>
                 </div>
             </div>
 
-            <div class="p-4 bg-slate-900/50 rounded-2xl space-y-3">
+            <div class="p-4 bg-slate-950 rounded-2xl space-y-3 border border-white/5">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nuevo Producto</p>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="new-name" placeholder="Nombre" class="p-4 rounded-xl text-sm">
-                    <input type="number" id="new-price" placeholder="Precio" class="p-4 rounded-xl text-sm font-bold">
+                    <input type="text" id="new-name" placeholder="Nombre" class="p-4 rounded-xl text-sm bg-slate-900 border-none outline-none">
+                    <input type="number" id="new-price" placeholder="Precio" class="p-4 rounded-xl text-sm font-bold bg-slate-900 border-none outline-none">
                 </div>
-                <button onclick="addProduct()" class="w-full py-4 bg-cyan-500 text-slate-900 rounded-2xl font-black uppercase text-[10px]">Añadir al POS</button>
+                <button onclick="addProduct()" class="w-full py-4 bg-cyan-500 text-slate-900 rounded-2xl font-black uppercase text-[10px] active:scale-95 transition-all">Guardar en Catálogo</button>
             </div>
             
             <div id="full-inventory" class="space-y-2 pt-4"></div>
@@ -185,27 +212,26 @@
     </div>
 
     <!-- Tab Bar -->
-    <div class="tab-bar glass flex justify-around items-center border-t border-white/10 px-2">
-        <button onclick="switchView('pos-view')" id="tab-pos" class="flex flex-col items-center gap-1 text-cyan-400">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-width="2" /></svg>
-            <span class="text-[7px] font-bold uppercase">POS</span>
+    <div class="tab-bar glass flex justify-around items-center border border-white/10 px-2 shadow-2xl">
+        <button onclick="switchView('pos-view')" id="tab-pos" class="flex flex-col items-center gap-1 text-cyan-400 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-width="2" /></svg>
+            <span class="text-[7px] font-black uppercase tracking-tighter">Vender</span>
         </button>
-        <button onclick="switchView('cash-view')" id="tab-cash" class="flex flex-col items-center gap-1 text-slate-400">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" /></svg>
-            <span class="text-[7px] font-bold uppercase">Caja</span>
+        <button onclick="switchView('cash-view')" id="tab-cash" class="flex flex-col items-center gap-1 text-slate-400 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" /></svg>
+            <span class="text-[7px] font-black uppercase tracking-tighter">Caja</span>
         </button>
-        <button onclick="switchView('stats-view')" id="tab-stats" class="flex flex-col items-center gap-1 text-slate-400">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-width="2" /></svg>
-            <span class="text-[7px] font-bold uppercase">Stats</span>
+        <button onclick="switchView('stats-view')" id="tab-stats" class="flex flex-col items-center gap-1 text-slate-400 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-width="2" /></svg>
+            <span class="text-[7px] font-black uppercase tracking-tighter">Stats</span>
         </button>
-        <button onclick="switchView('fixed-view')" id="tab-fixed" class="flex flex-col items-center gap-1 text-slate-400">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" /></svg>
-            <span class="text-[7px] font-bold uppercase">Agenda</span>
+        <button onclick="switchView('fixed-view')" id="tab-fixed" class="flex flex-col items-center gap-1 text-slate-400 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2" /></svg>
+            <span class="text-[7px] font-black uppercase tracking-tighter">Agenda</span>
         </button>
     </div>
 
     <script>
-        // --- MOTOR DE DATOS ---
         const DATA_KEY = 'billetera_pro_v2_data';
         let state = JSON.parse(localStorage.getItem(DATA_KEY)) || {
             balance: 0,
@@ -224,15 +250,28 @@
             render();
         }
 
-        // --- BACKUP ---
+        // Helpers
+        function getMonthKey(offset = 0) {
+            const d = new Date();
+            d.setMonth(d.getMonth() + offset);
+            const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            return `${months[d.getMonth()]} ${d.getFullYear()}`;
+        }
+
+        function monthKeyToDate(key) {
+            const [mName, year] = key.split(' ');
+            const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            return new Date(parseInt(year), months.indexOf(mName), 1);
+        }
+
+        // Export/Import
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
             downloadAnchorNode.setAttribute("download", "billetera_backup_" + new Date().toLocaleDateString() + ".json");
             document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
+            downloadAnchorNode.click(); downloadAnchorNode.remove();
         }
 
         function importData(event) {
@@ -242,19 +281,12 @@
             reader.onload = (e) => {
                 try {
                     const imported = JSON.parse(e.target.result);
-                    if(confirm("¿Estás seguro de importar? Esto reemplazará tus datos actuales.")) {
-                        state = imported;
-                        save();
-                        location.reload();
-                    }
-                } catch(err) {
-                    alert("Archivo de backup no válido");
-                }
+                    if(confirm("¿Deseas reemplazar todos los datos actuales con esta importación?")) { state = imported; save(); location.reload(); }
+                } catch(err) { alert("Archivo de respaldo inválido."); }
             };
             reader.readAsText(file);
         }
 
-        // --- NAVEGACIÓN ---
         function switchView(id) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -266,15 +298,7 @@
             });
         }
 
-        // --- LÓGICA DE TIEMPO ---
-        function getMonthKey(offset = 0) {
-            const d = new Date();
-            d.setMonth(d.getMonth() + offset);
-            const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-            return `${months[d.getMonth()]} ${d.getFullYear()}`;
-        }
-
-        // --- POS & CANTIDADES ---
+        // POS Logic
         function openQtySelector(productId) {
             const p = state.products.find(x => x.id === productId);
             if(!p) return;
@@ -287,27 +311,27 @@
 
         function adjustQty(val) {
             const input = document.getElementById('manual-qty');
-            let current = parseInt(input.value) || 0;
-            current = Math.max(1, current + val);
-            input.value = current;
+            input.value = Math.max(1, (parseInt(input.value) || 0) + val);
             updateQtySubtotal();
         }
 
         function updateQtySubtotal() {
             if(!selectedProductForQty) return;
-            const q = parseInt(document.getElementById('manual-qty').value) || 1;
-            const price = selectedProductForQty.price || 0;
-            document.getElementById('qty-subtotal').innerText = `Subtotal: $ ${(price * q).toLocaleString()}`;
+            const q = parseInt(document.getElementById('manual-qty').value) || 0;
+            // Si el precio es 0, mostramos 0. Si no, calculamos.
+            const subtotalValue = selectedProductForQty.price * q;
+            document.getElementById('qty-subtotal').innerText = `$ ${subtotalValue.toLocaleString()}`;
         }
 
-        document.getElementById('manual-qty').addEventListener('input', updateQtySubtotal);
-
         function confirmQtyAdd() {
-            const q = parseInt(document.getElementById('manual-qty').value) || 1;
+            const q = parseInt(document.getElementById('manual-qty').value) || 0;
+            if (q <= 0) {
+                closeModal('qty-modal');
+                return;
+            }
             const inCart = cart.find(x => x.id === selectedProductForQty.id);
             if(inCart) inCart.qty += q; else cart.push({...selectedProductForQty, qty: q});
-            closeModal('qty-modal');
-            render();
+            closeModal('qty-modal'); render();
         }
 
         function getCartTotal() {
@@ -319,8 +343,7 @@
         function calculateChange() {
             const total = getCartTotal();
             const pay = parseFloat(document.getElementById('payment-received').value) || 0;
-            const vuelto = Math.max(0, pay - total);
-            document.getElementById('payment-change').innerText = total > 0 ? `Vuelto: $ ${vuelto.toLocaleString()}` : "Vuelto: $ 0";
+            document.getElementById('payment-change').innerText = total > 0 ? `Vuelto: $ ${Math.max(0, pay - total).toLocaleString()}` : "Vuelto: $ 0";
         }
 
         function confirmSale() {
@@ -330,19 +353,17 @@
             state.history.push({ 
                 id: Date.now(),
                 date: new Date().toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
-                month: getMonthKey(),
-                amount: t, 
+                month: getMonthKey(), amount: t, 
                 desc: `Venta: ${cart.map(c => `${c.qty}x ${c.name}`).join(', ') || 'Venta Manual'}`,
                 type: 'sale'
             });
-            clearCart();
-            save();
+            clearCart(); save();
         }
 
         function clearCart() { cart = []; document.getElementById('payment-received').value = ''; document.getElementById('cart-discount').value = ''; render(); }
         function removeCartItem(id) { cart = cart.filter(i => i.id !== id); render(); }
 
-        // --- CAJA ---
+        // Caja Logic
         function setCashType(t) {
             state.cashType = t;
             document.getElementById('type-income').className = t === 'income' ? "flex-1 py-3 rounded-xl font-bold text-[11px] uppercase bg-blue-600 text-white" : "flex-1 py-3 rounded-xl font-bold text-[11px] uppercase text-slate-500";
@@ -360,12 +381,12 @@
         function renderInstallmentCalc() {
             const val = parseFloat(document.getElementById('cash-amount').value) || 0;
             const ins = parseInt(document.getElementById('installments').value) || 1;
-            document.getElementById('installment-info').innerText = ins > 1 ? `${ins} cuotas de $ ${(val/ins).toLocaleString()}` : "";
+            document.getElementById('installment-info').innerText = ins > 1 ? `${ins} CUOTAS DE $ ${(val/ins).toLocaleString()}` : "";
         }
 
         function registerCashMovement() {
             const val = parseFloat(document.getElementById('cash-amount').value);
-            const obs = document.getElementById('cash-obs').value || 'Movimiento Manual';
+            const obs = document.getElementById('cash-obs').value || (state.cashType === 'income' ? 'Ingreso Manual' : 'Egreso Manual');
             if(!val) return;
             const moveId = Date.now();
 
@@ -388,121 +409,169 @@
             save(); switchView('pos-view');
         }
 
-        // --- AGENDA & PAGOS ---
-        function payMonth(month) {
-            const toPay = state.fixed.filter(f => f.month === month);
-            const total = toPay.reduce((acc, curr) => acc + curr.amount, 0);
-            state.balance -= total;
+        // Historial / Borrado
+        function deleteHistoryItem(id) {
+            const index = state.history.findIndex(h => h.id === id);
+            if(index === -1) return;
+            
+            if(confirm("¿Seguro que deseas eliminar este movimiento? Se revertirá el saldo.")) {
+                const item = state.history[index];
+                state.balance -= item.amount;
+                state.history.splice(index, 1);
+                save();
+            }
+        }
+
+        // Agenda / Pagos
+        function payIndividualItem(id) {
+            const index = state.fixed.findIndex(f => f.id === id);
+            if(index === -1) return;
+            
+            const item = state.fixed[index];
+            state.balance -= item.amount;
             state.history.push({
-                id: Date.now(), date: new Date().toLocaleString('es-ES'), month: getMonthKey(), amount: -total, desc: `Pago Agenda: ${month}`, type: 'expense'
+                id: Date.now(), date: new Date().toLocaleString('es-ES'), month: getMonthKey(), 
+                amount: -item.amount, desc: `Pago: ${item.name}`, type: 'expense'
             });
-            state.fixed = state.fixed.filter(f => f.month !== month);
+            state.fixed.splice(index, 1);
             save();
         }
 
-        // --- PRODUCTOS ---
+        function payMonth(month) {
+            const toPay = state.fixed.filter(f => f.month === month);
+            if(toPay.length === 0) return;
+            const total = toPay.reduce((acc, curr) => acc + curr.amount, 0);
+            if(confirm(`¿Liquidar todos los pagos de ${month}? Total: $${total.toLocaleString()}`)) {
+                state.balance -= total;
+                state.history.push({
+                    id: Date.now(), date: new Date().toLocaleString('es-ES'), month: getMonthKey(), 
+                    amount: -total, desc: `Agenda Completa: ${month}`, type: 'expense'
+                });
+                state.fixed = state.fixed.filter(f => f.month !== month);
+                save();
+            }
+        }
+
+        // Gestión Catálogo
         function addProduct() {
             const n = document.getElementById('new-name'), p = document.getElementById('new-price');
             if(!n.value) return;
             state.products.push({ id: Date.now(), name: n.value, price: parseFloat(p.value) || 0 });
             n.value = ''; p.value = ''; save();
         }
-
         function removeProduct(id) { state.products = state.products.filter(x => x.id !== id); save(); }
 
-        // --- UI UTILS ---
         function openModal(id) { document.getElementById(id).classList.add('active'); document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); document.getElementById(id).classList.add('hidden'); }
 
-        // --- RENDERIZADO ---
         function render() {
             document.getElementById('main-balance').innerText = `$ ${state.balance.toLocaleString()}`;
             
-            // POS
+            // Render POS
             document.getElementById('pos-grid').innerHTML = state.products.map(p => `
-                <button onclick="openQtySelector(${p.id})" class="glass p-5 rounded-[1.8rem] flex flex-col text-left active:scale-95">
-                    <span class="text-[9px] font-black text-slate-500 uppercase mb-1 truncate">${p.name}</span>
+                <button onclick="openQtySelector(${p.id})" class="glass p-5 rounded-[1.8rem] flex flex-col text-left active:scale-95 transition-transform border border-white/5">
+                    <span class="text-[9px] font-black text-slate-500 uppercase mb-1 truncate tracking-widest">${p.name}</span>
                     <span class="text-lg font-bold text-white">${p.price > 0 ? '$ ' + p.price.toLocaleString() : 'Manual'}</span>
                 </button>
             `).join('');
 
-            // Carrito
+            // Render Cart
             document.getElementById('cart-items').innerHTML = cart.map(i => `
-                <div class="flex justify-between items-center group">
-                    <div class="flex items-center gap-2">
-                        <span class="bg-cyan-500 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded-md">${i.qty}</span>
-                        <span class="text-white">${i.name}</span>
+                <div class="flex justify-between items-center group bg-white/5 p-3 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-lg">${i.qty}</span>
+                        <span class="text-white font-medium">${i.name}</span>
                     </div>
                     <div class="flex items-center gap-3">
-                        <span class="font-bold text-white">$ ${(i.qty*i.price).toLocaleString()}</span>
-                        <button onclick="removeCartItem(${i.id})" class="text-rose-500/50">✕</button>
+                        <span class="font-bold text-white text-xs">$ ${(i.qty*i.price).toLocaleString()}</span>
+                        <button onclick="removeCartItem(${i.id})" class="text-rose-500 p-1 opacity-50 hover:opacity-100">✕</button>
                     </div>
                 </div>
-            `).join('') || '<p class="text-center text-slate-500 py-4 italic">Carrito vacío</p>';
+            `).join('') || '<div class="text-center py-6"><p class="text-slate-500 text-xs italic uppercase tracking-widest opacity-40">Esperando pedido...</p></div>';
             document.getElementById('cart-total').innerText = `$ ${getCartTotal().toLocaleString()}`;
 
-            // Stats
+            // Render Stats & History
             const monthSelector = document.getElementById('stats-month-filter');
             const uniqueMonths = [...new Set(state.history.map(h => h.month))];
             if(!uniqueMonths.includes(getMonthKey())) uniqueMonths.push(getMonthKey());
             const currentSel = monthSelector.value || getMonthKey();
-            monthSelector.innerHTML = uniqueMonths.sort().map(m => `<option value="${m}" ${m===currentSel?'selected':''}>${m}</option>`).join('');
+            monthSelector.innerHTML = uniqueMonths.sort().reverse().map(m => `<option value="${m}" ${m===currentSel?'selected':''}>${m}</option>`).join('');
 
             const filtered = state.history.filter(h => h.month === currentSel);
             const inc = filtered.filter(h => h.amount > 0).reduce((a,b) => a + b.amount, 0);
             const exp = filtered.filter(h => h.amount < 0).reduce((a,b) => a + Math.abs(b.amount), 0);
+            
             document.getElementById('monthly-income').innerText = `$ ${inc.toLocaleString()}`;
             document.getElementById('monthly-expense').innerText = `$ ${exp.toLocaleString()}`;
             document.getElementById('monthly-net').innerText = `$ ${(inc-exp).toLocaleString()}`;
+            
             const totalM = inc + exp;
             document.getElementById('bar-income').style.width = totalM > 0 ? (inc/totalM)*100 + '%' : '50%';
             document.getElementById('bar-expense').style.width = totalM > 0 ? (exp/totalM)*100 + '%' : '50%';
 
             document.getElementById('monthly-details').innerHTML = filtered.map(h => `
-                <div class="glass p-3 rounded-xl flex justify-between items-center text-[10px]">
-                    <span class="text-slate-400">${h.date.split(',')[0]}</span>
-                    <span class="text-white font-bold flex-1 px-4 truncate">${h.desc}</span>
-                    <span class="${h.amount < 0 ? 'text-rose-400' : 'text-emerald-400'} font-black">$ ${Math.abs(h.amount).toLocaleString()}</span>
+                <div class="glass p-4 rounded-2xl flex justify-between items-center text-[11px] border border-white/5">
+                    <div class="flex flex-col gap-0.5">
+                        <span class="text-slate-500 font-bold text-[9px] uppercase">${h.date.split(',')[0]}</span>
+                        <span class="text-white font-bold truncate max-w-[150px]">${h.desc}</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="${h.amount < 0 ? 'text-rose-400' : h.amount === 0 ? 'text-cyan-400' : 'text-emerald-400'} font-black text-sm">
+                            ${h.amount === 0 ? 'TARJETA' : (h.amount < 0 ? '-' : '+') + ' $' + Math.abs(h.amount).toLocaleString()}
+                        </span>
+                        <button onclick="deleteHistoryItem(${h.id})" class="w-8 h-8 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center active:scale-75 transition-transform">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
                 </div>
             `).reverse().join('');
 
-            // Agenda Grupos
+            // Render Agenda (ORDENADO)
             const groups = state.fixed.reduce((acc, item) => {
                 if(!acc[item.month]) acc[item.month] = [];
                 acc[item.month].push(item);
                 return acc;
             }, {});
 
-            document.getElementById('fixed-grouped-list').innerHTML = Object.keys(groups).sort().map(m => {
-                const total = groups[m].reduce((s,i) => s + i.amount, 0);
+            const sortedMonthKeys = Object.keys(groups).sort((a, b) => monthKeyToDate(a) - monthKeyToDate(b));
+
+            document.getElementById('fixed-grouped-list').innerHTML = sortedMonthKeys.map(m => {
+                const totalMonth = groups[m].reduce((s,i) => s + i.amount, 0);
                 return `
                     <div class="space-y-3 px-2">
                         <div class="flex justify-between items-end border-b border-white/5 pb-2">
-                            <div><h3 class="text-lg font-black text-white">${m}</h3><p class="text-[9px] text-cyan-400 font-bold uppercase">Deuda: $ ${total.toLocaleString()}</p></div>
-                            <button onclick="payMonth('${m}')" class="bg-cyan-500 text-slate-900 px-4 py-2 rounded-xl text-[9px] font-black uppercase">Pagar Todo</button>
+                            <div><h3 class="text-lg font-black text-white tracking-tight">${m}</h3><p class="text-[9px] text-cyan-400 font-bold uppercase tracking-widest">Adeudado: $ ${totalMonth.toLocaleString()}</p></div>
+                            <button onclick="payMonth('${m}')" class="bg-white/5 text-white/40 px-3 py-2 rounded-xl text-[8px] font-black uppercase hover:bg-white/10">Liquidar</button>
                         </div>
                         ${groups[m].map(i => `
-                            <div class="glass p-4 rounded-2xl flex justify-between items-center text-xs">
-                                <span class="text-slate-300">${i.name}</span>
-                                <span class="text-white font-black">$ ${i.amount.toLocaleString()}</span>
+                            <div class="glass p-5 rounded-[1.8rem] flex justify-between items-center border border-white/5 shadow-lg">
+                                <div class="flex-1">
+                                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-1">${i.name}</p>
+                                    <p class="text-white font-black text-base">$ ${i.amount.toLocaleString()}</p>
+                                </div>
+                                <button onclick="payIndividualItem(${i.id})" class="bg-emerald-500 text-slate-900 px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Pagar</button>
                             </div>
                         `).join('')}
                     </div>
                 `;
-            }).join('') || '<p class="text-center py-20 text-slate-500 uppercase text-[10px] tracking-widest">Sin deudas</p>';
+            }).join('') || '<div class="text-center py-32 opacity-20 uppercase text-[10px] font-black tracking-[0.3em]">Agenda Limpia</div>';
 
+            // Catálogo en modal
             document.getElementById('full-inventory').innerHTML = state.products.map(p => `
-                <div class="flex justify-between p-4 bg-slate-900/50 rounded-xl items-center mb-2">
-                    <span class="text-xs font-bold">${p.name} ($${p.price.toLocaleString()})</span>
-                    <button onclick="removeProduct(${p.id})" class="text-rose-500">✕</button>
+                <div class="flex justify-between p-4 bg-slate-900 rounded-2xl items-center border border-white/5">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-black text-white uppercase tracking-tight">${p.name}</span>
+                        <span class="text-[10px] text-cyan-400 font-bold">$ ${p.price.toLocaleString()}</span>
+                    </div>
+                    <button onclick="removeProduct(${p.id})" class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">✕</button>
                 </div>
             `).join('');
         }
 
-        // Init Cuotas Select
+        // Init Cuotas
         const instSel = document.getElementById('installments');
         [1,2,3,6,12,18,24].forEach(i => {
-            const opt = document.createElement('option'); opt.value = i; opt.innerText = i + (i>1?' Cuotas':' Pago');
+            const opt = document.createElement('option'); opt.value = i; opt.innerText = i + (i>1?' Cuotas':' Pago Único');
             instSel.appendChild(opt);
         });
 
